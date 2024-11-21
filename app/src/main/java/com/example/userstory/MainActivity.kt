@@ -1,14 +1,20 @@
 package com.example.userstory
 
+import android.app.AlertDialog
 import android.content.ContentUris
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,22 +35,52 @@ import androidx.core.content.ContextCompat
 import com.example.userstory.ui.theme.UserstoryTheme
 
 class MainActivity : ComponentActivity() {
+
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    private val appSettingsLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        // READ_MEDIA_IMAGES 권한 상태 확인
+        val isAlwaysAllow = ContextCompat.checkSelfPermission(
+            this,
+            android.Manifest.permission.READ_MEDIA_IMAGES
+        ) == PackageManager.PERMISSION_GRANTED
+
+        // READ_MEDIA_VISUAL_USER_SELECTED 권한 상태 확인
+        val isLimitedAccessAllow = ContextCompat.checkSelfPermission(
+            this,
+            android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
+        ) == PackageManager.PERMISSION_GRANTED
+
+        when {
+            isAlwaysAllow && isLimitedAccessAllow -> {
+                Log.e("PermissionCheck", "Always Allow: Media access granted.")
+            }
+            !isAlwaysAllow && isLimitedAccessAllow -> {
+                Log.e("PermissionCheck", "Limited Access Allow: Restricted media access granted.")
+            }
+            else -> {
+                Log.e("PermissionCheck", "Limited Access or Denied.")
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // 권한 요청 처리
         val permissionsToRequest = when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> listOf(
-                android.Manifest.permission.READ_MEDIA_IMAGES,
-                android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
-            )
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> listOf()
+
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> listOf(
                 android.Manifest.permission.READ_MEDIA_IMAGES
             )
+
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> listOf(
                 android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 android.Manifest.permission.READ_EXTERNAL_STORAGE
             )
+
             else -> listOf(
                 android.Manifest.permission.WRITE_EXTERNAL_STORAGE
             )
@@ -64,13 +100,39 @@ class MainActivity : ComponentActivity() {
                     PermissionHandler(
                         permissions = permissionsToRequest.toTypedArray(),
                         requestPermissionsLauncher = { permissions ->
-                            requestPermissionsLauncher.launch(permissions)
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                                showSettingsDialog() // 34 이상 팝업 호출
+                            } else {
+                                requestPermissionsLauncher.launch(permissions)
+                            }
                         },
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
             }
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    private fun showSettingsDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("권한 필요")
+            .setMessage("제한된 액세스를 허용하려면 설정 화면에서 권한을 변경하세요.")
+            .setPositiveButton("설정으로 이동") { _, _ ->
+                openAppSettings()
+            }
+            .setNegativeButton("취소", null)
+            .show()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    private fun openAppSettings() {
+        val packageName = this.packageName // Activity Context 기반
+        Log.d("SettingsIntent", "Opening settings for package: $packageName")
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.parse("package:$packageName")
+        }
+        appSettingsLauncher.launch(intent)
     }
 }
 
@@ -81,7 +143,6 @@ fun PermissionHandler(
     modifier: Modifier = Modifier
 ) {
     var permissionRequested by remember { mutableStateOf(false) }
-    var hasPermission by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     // 최초 권한 요청 트리거
@@ -89,14 +150,6 @@ fun PermissionHandler(
         if (!permissionRequested) {
             requestPermissionsLauncher(permissions)
             permissionRequested = true
-
-            // 권한 상태 확인
-            hasPermission = permissions.all {
-                ContextCompat.checkSelfPermission(
-                    context,
-                    it
-                ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-            }
         }
     }
 
