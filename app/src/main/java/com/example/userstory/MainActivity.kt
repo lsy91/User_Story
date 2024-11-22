@@ -4,13 +4,15 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.example.userstory.ui.theme.UserStoryTheme
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import com.example.userstory.utils.PermissionHelper
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var permissionHelper: PermissionHelper
 
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -19,9 +21,11 @@ class MainActivity : ComponentActivity() {
         handlePermissions()
 
         setContent {
-            UserStoryTheme {
+            val widthSizeClass = calculateWindowSizeClass(activity = this@MainActivity).widthSizeClass
 
-            }
+            UserStoryApp(
+                widthSizeClass = widthSizeClass
+            )
         }
     }
 
@@ -35,7 +39,6 @@ class MainActivity : ComponentActivity() {
                 )
 
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> listOf(
-                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     android.Manifest.permission.READ_EXTERNAL_STORAGE
                 )
 

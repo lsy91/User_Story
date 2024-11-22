@@ -54,7 +54,6 @@ class PermissionHelper(activity: ComponentActivity) {
                     android.Manifest.permission.READ_MEDIA_IMAGES
                 )
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> listOf(
-                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     android.Manifest.permission.READ_EXTERNAL_STORAGE
                 )
                 else -> listOf(
@@ -85,8 +84,8 @@ class PermissionHelper(activity: ComponentActivity) {
         val hasDeniedPermission = permissions.any { (_, isGranted) -> !isGranted }
 
         if (hasDeniedPermission) {
-            // 하나라도 거부된 권한이 있는 경우 처리
-            openAppSettings(context = activity)
+            // 하나라도 거부된 권한이 있는 경우 권한이 필요하다고 안내 띄워준다.
+            showSettingsDialog(activity)
         } else {
             // 모든 권한이 허용된 경우 처리
             Log.d("Permissions", "All permissions granted.")
