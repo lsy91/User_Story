@@ -1,5 +1,6 @@
 package com.example.userstory.ui.feature.album_list
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,7 +22,6 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -33,7 +33,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.userstory.R
 import com.example.userstory.ui.common.BaseText
@@ -84,27 +83,32 @@ fun AlbumListScreen(
             }
         }
 
-        when (selectedTabIndex) {
+        // TODO 클릭한 탭에 따라 보여줄 앨범 리스트 데이터만 분기처리. 앨범 리스트 뷰는 재활용한다.
+        // 갤러리 이미지 가져오기
+        // accessAllMediaFilesGroupedByFolder(context)
+
+        val albumData = when (selectedTabIndex) {
             1 -> {
-                AllAlbums()
+                "All Albums"
             }
             else -> {
-                MyAlbums()
+                "My Albums"
             }
         }
+
+        AlbumList(albumData)
     }
 }
 
 @Composable
-fun MyAlbums() {
-
+fun AlbumList(
+    albumData: String
+) {
     val lazyListState = rememberLazyGridState()
     val context = LocalContext.current
 
-    // 갤러리 이미지 가져오기
-    //        accessAllMediaFilesGroupedByFolder(context)
-
     // Test
+    Toast.makeText(context, albumData, Toast.LENGTH_SHORT).show()
     val albumList = listOf("1","2","3","4","5","6","7")
 
     LazyVerticalGrid(
@@ -128,15 +132,6 @@ fun MyAlbums() {
             AlbumCard()
         }
     }
-}
-
-@Composable
-fun AllAlbums() {
-    Text(
-        text = "AllAlbums",
-        modifier = Modifier.fillMaxSize(),
-        textAlign = TextAlign.Center
-    )
 }
 
 @Composable
