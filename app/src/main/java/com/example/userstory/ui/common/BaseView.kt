@@ -1,7 +1,12 @@
 package com.example.userstory.ui.common
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridItemScope
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -10,6 +15,7 @@ import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.userstory.ui.theme.RobotoRegular
 import com.example.userstory.ui.theme.UserStoryFontColor
@@ -36,4 +42,31 @@ fun BaseText(
             .fillMaxWidth()
             .wrapContentHeight()
     )
+}
+
+@Composable
+fun <T> BaseLazyVerticalGrid(
+    items: List<T>, // 데이터 리스트
+    key: ((index: Int) -> Any)?, // 각 항목의 고유 키
+    columns: Int = 2, // 기본 열 개수
+    verticalSpacing: Int = 8, // 아이템 간 수직 간격
+    horizontalSpacing: Int = 8, // 아이템 간 수평 간격
+    modifier: Modifier = Modifier,
+    itemContent: @Composable LazyGridItemScope.(item: T) -> Unit // 각 아이템의 UI 정의
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(columns),
+        verticalArrangement = Arrangement.spacedBy(verticalSpacing.dp),
+        horizontalArrangement = Arrangement.spacedBy(horizontalSpacing.dp),
+        modifier = modifier,
+        state = rememberLazyGridState()
+    ) {
+        items(
+            count = items.size,
+            key = key
+        ) { index ->
+            val item = items[index]
+            itemContent(item)
+        }
+    }
 }

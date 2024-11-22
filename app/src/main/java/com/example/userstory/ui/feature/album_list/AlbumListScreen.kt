@@ -3,7 +3,6 @@ package com.example.userstory.ui.feature.album_list
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -12,9 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -35,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.userstory.R
+import com.example.userstory.ui.common.BaseLazyVerticalGrid
 import com.example.userstory.ui.common.BaseText
 import com.example.userstory.ui.theme.UserStoryBackgroundColor
 import com.example.userstory.ui.theme.UserStoryCardDescriptionBackgroundColor
@@ -42,7 +39,7 @@ import com.example.userstory.ui.theme.UserStoryTabIndicatorColor
 
 @Composable
 fun AlbumListScreen(
-
+    navigateToScreen: (String, Any?) -> Unit
 ) {
     // 탭 상태 관리
     val albumListScreenTabs = listOf("My Albums", "All Albums")
@@ -85,7 +82,7 @@ fun AlbumListScreen(
 
         // TODO 클릭한 탭에 따라 보여줄 앨범 리스트 데이터만 분기처리. 앨범 리스트 뷰는 재활용한다.
         // 갤러리 이미지 가져오기
-        // accessAllMediaFilesGroupedByFolder(context)
+        // CommonUtils.accessAllMediaFilesGroupedByFolder(context)
 
         val albumData = when (selectedTabIndex) {
             1 -> {
@@ -96,52 +93,57 @@ fun AlbumListScreen(
             }
         }
 
-        AlbumList(albumData)
+        AlbumList(
+            albumData = albumData,
+            navigateToScreen = navigateToScreen
+        )
     }
 }
 
 @Composable
 fun AlbumList(
-    albumData: String
+    albumData: String,
+    navigateToScreen: (String, Any?) -> Unit
 ) {
-    val lazyListState = rememberLazyGridState()
     val context = LocalContext.current
 
     // Test
     Toast.makeText(context, albumData, Toast.LENGTH_SHORT).show()
     val albumList = listOf("1","2","3","4","5","6","7")
 
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        state = lazyListState,
+    BaseLazyVerticalGrid(
+        items = albumList, // 데이터 리스트
+        key = { index -> albumList[index] }, // 고유 키
+        columns = 2, // 열 개수
+        verticalSpacing = 8, // 수직 간격
+        horizontalSpacing = 8, // 수평 간격
         modifier = Modifier
             .fillMaxSize()
             .padding(
                 horizontal = 6.dp,
                 vertical = 16.dp
             )
-    ) {
-        // TODO 사진을 완전히 불러오는 동안 Shimmer 적용 - 코루틴으로 제어
-        items(
-            count = albumList.size,
-            key = { index -> albumList[index] } // 각 항목의 고유 키
-        ) { index ->
-            val album = albumList[index]
-            AlbumCard()
-        }
+    ) { album ->
+        AlbumCard(
+            navigateToScreen = navigateToScreen // 아이템 UI 정의
+        )
     }
 }
 
 @Composable
-fun AlbumCard() {
+fun AlbumCard(
+    navigateToScreen: (String, Any?) -> Unit
+) {
     Card(
         shape = RoundedCornerShape(3.dp),
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
                 // TODO 사진 리스트로 이동
+                navigateToScreen(
+                    "PhotoList",
+                    "{Arguments : PhotoList}"
+                )
             },
         elevation = CardDefaults.elevatedCardElevation(3.dp)
     ) {

@@ -1,9 +1,15 @@
 package com.example.userstory
 
+import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -12,14 +18,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
 import com.example.userstory.ui.common.BaseText
 import com.example.userstory.ui.feature.album_list.AlbumListScreen
+import com.example.userstory.ui.feature.photo_list.PhotoListScreen
 import com.example.userstory.ui.theme.RobotoRegular
 import com.example.userstory.ui.theme.UserStoryBackgroundColor
 import com.example.userstory.ui.theme.UserStoryFontColor
+import com.example.userstory.utils.CommonUtils
 import kotlinx.coroutines.CoroutineScope
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,22 +37,22 @@ import kotlinx.coroutines.CoroutineScope
 fun UserStoryNavGraph(
     isExpandedScreen: Boolean,
     navController: NavHostController,
-    navigateToScreen: (String) -> Unit,
+    navigateToScreen: (String, Any?) -> Unit,
     navigateToMain: () -> Unit,
     coroutineScope: CoroutineScope
 ) {
     Scaffold(
         topBar = {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
-            val currentRoute = navBackStackEntry?.destination?.route
+            val currentRoute = navBackStackEntry?.destination?.route ?: ""
 
             TopAppBar(
                 title = {
                     BaseText(
-                        text = when (currentRoute) {
-                            "AlbumList" -> "ALBUM LIST"
-                            "PictureList" -> "앨범명"
-                            "Picture" -> "앨범명"
+                        text = when {
+                            currentRoute.contains("AlbumList") -> "ALBUM LIST"
+                            currentRoute.contains("PhotoList") -> "앨범명"
+                            currentRoute.contains("Photo") -> "앨범명"
                             else -> ""
                         },
                         fontSize = 18,
@@ -50,6 +60,21 @@ fun UserStoryNavGraph(
                         fontWeight = 700,
                         fontFamily = RobotoRegular
                     )
+                },
+                navigationIcon = {
+                    // 사진 리스트 화면, 사진 화면은 뒤로가기 아이콘을 넣어준다.
+                    if (!currentRoute.contains("AlbumList")) {
+                        // 뒤로가기 아이콘 추가
+                        IconButton(onClick = {
+                            navController.popBackStack() // 이전 화면으로 이동
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "backward",
+                                tint = UserStoryFontColor
+                            )
+                        }
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = UserStoryBackgroundColor
@@ -80,17 +105,36 @@ fun UserStoryNavGraph(
                 composable(
                     route = ScreenRoute.AlbumListRoute.route
                 ) {
-                    AlbumListScreen()
+                    AlbumListScreen(
+                        navigateToScreen = navigateToScreen
+                    )
                 }
 
                 composable(
-                    route = ScreenRoute.PictureListRoute.route
-                ) {
+                    route = ScreenRoute.PhotoListRoute.route + "/{PhotoList}",
+                    arguments = listOf(
+                        navArgument("PhotoList") {
+                            type = NavType.StringType
+                            defaultValue = ""
+                        }
+                    )
+                ) { backStackEntry ->
 
+                    // TODO Test
+                    // 선택한 앨범에서 전달받은 PhotoList 가져오기
+                    val encodedPhotoListData = backStackEntry.arguments?.getString("PhotoList") ?: ""
+                    val decodedPhotoList = Uri.decode(encodedPhotoListData)
+
+                    // JSON을 객체로 변환
+                    val photoListArguments = CommonUtils.convertJSONToObj<String>(decodedPhotoList, String::class.java)
+
+                    Log.e("sy.lee", photoListArguments.toString())
+
+                    PhotoListScreen()
                 }
 
                 composable(
-                    route = ScreenRoute.PictureRoute.route
+                    route = ScreenRoute.PhotoRoute.route
                 ) {
 
                 }
@@ -105,7 +149,7 @@ fun UserStoryNavGraph(
 sealed class ScreenRoute(val route: String) {
     data object AlbumListRoute : ScreenRoute("AlbumList")
 
-    data object PictureListRoute : ScreenRoute("PictureList")
+    data object PhotoListRoute : ScreenRoute("PhotoList")
 
-    data object PictureRoute : ScreenRoute("Picture")
+    data object PhotoRoute : ScreenRoute("Photo")
 }
