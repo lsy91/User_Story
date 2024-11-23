@@ -33,6 +33,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.userstory.ui.common.BaseText
 import com.example.userstory.ui.feature.album_list.AlbumListScreen
+import com.example.userstory.ui.feature.photo.PhotoIntent
 import com.example.userstory.ui.feature.photo.PhotoScreen
 import com.example.userstory.ui.feature.photo.PhotoViewModel
 import com.example.userstory.ui.feature.photo_list.PhotoListScreen
@@ -47,7 +48,6 @@ import kotlinx.coroutines.CoroutineScope
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserStoryNavGraph(
-    isExpandedScreen: Boolean,
     navController: NavHostController,
     navigateToScreen: (String, Any?) -> Unit,
     navigateToMain: () -> Unit,
@@ -85,8 +85,8 @@ fun UserStoryNavGraph(
                                 containerColor = UserStoryOverlayButtonBackgroundColor
                             ),
                             onClick = {
-                                // TODO 사진 저장 후 메인 이동
-                                navigateToMain()
+                                // 사진 저장
+                                photoViewModel.handleIntent(PhotoIntent.UpdateSavingState(true))
                             },
                             contentPadding = PaddingValues(horizontal = 30.dp, vertical = 8.dp),
                             modifier = Modifier
@@ -208,6 +208,7 @@ fun UserStoryNavGraph(
 
                     PhotoScreen(
                         photoViewModel = photoViewModel,
+                        navigateToMain = navigateToMain,
                     )
                 }
             }

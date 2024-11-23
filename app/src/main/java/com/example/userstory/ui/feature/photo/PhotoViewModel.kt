@@ -16,6 +16,10 @@ class PhotoViewModel : ViewModel() {
                     currentState.copy(isButtonVisible = intent.isVisible)
                 }
             }
+            is PhotoIntent.UpdateSavingState -> {
+                _state.update { it.copy(isSaving = intent.isSaving) }
+            }
+            else -> {}
         }
     }
 }

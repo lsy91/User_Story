@@ -4,15 +4,12 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import com.example.userstory.utils.PermissionHelper
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var permissionHelper: PermissionHelper
 
-    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -21,11 +18,7 @@ class MainActivity : ComponentActivity() {
         handlePermissions()
 
         setContent {
-            val widthSizeClass = calculateWindowSizeClass(activity = this@MainActivity).widthSizeClass
-
-            UserStoryApp(
-                widthSizeClass = widthSizeClass
-            )
+            UserStoryApp()
         }
     }
 

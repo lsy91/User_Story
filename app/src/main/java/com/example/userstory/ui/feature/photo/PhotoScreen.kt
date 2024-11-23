@@ -11,7 +11,8 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,16 +31,21 @@ import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import com.example.userstory.R
 import com.example.userstory.utils.CoilWithImageState
+import com.example.userstory.utils.SaveComposableAsImage
+import com.example.userstory.utils.saveBitmapToGallery
 
 @Composable
 fun PhotoScreen(
     photoViewModel: PhotoViewModel,
+    navigateToMain: () -> Unit
 ) {
     val decoItems = List(10) { "Deco $it" } // 10개의 아이템 리스트
 
     // TODO Test 선택된 Image Url 상태 관리
     var selectedUrl by remember { mutableStateOf("") }
     val context = LocalContext.current
+
+    val photoState by photoViewModel.state.collectAsState()
 
     Column(
         modifier = Modifier
@@ -50,49 +56,57 @@ fun PhotoScreen(
                 .fillMaxWidth()
                 .weight(0.75f)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_background), // 이미지 리소스
-                contentDescription = "Selected Photo",
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
+            SaveComposableAsImage(
+                isSaving = photoState.isSaving,
+                content = {
+                    Box(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_launcher_background), // 이미지 리소스
+                            contentDescription = "Selected Photo",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
 
-            if (selectedUrl.isNotBlank()) {
+                        if (selectedUrl.isNotBlank()) {
 
-                // 간단히 SVG 이미지 로드
-                val imageLoader = ImageLoader.Builder(context)
-                    .components {
-                        add(SvgDecoder.Factory()) // SVG 디코더 추가
+                            // 간단히 SVG 이미지 로드
+                            val imageLoader = ImageLoader.Builder(context)
+                                .components {
+                                    add(SvgDecoder.Factory()) // SVG 디코더 추가
+                                }
+                                .build()
+
+                            AsyncImage(
+                                model = ImageRequest.Builder(context)
+                                    .data("https://firebasestorage.googleapis.com/v0/b/userstory-e9437.firebasestorage.app/o/deco_svg_images%2Fdeco_1.svg?alt=media&token=d729269f-72c0-499c-8da0-dc2621703ec1")
+                                    .size(1024, 1024)
+                                    .build(),
+                                contentDescription = "Loaded Image",
+                                imageLoader = imageLoader,
+                                // error = painterResource(R.drawable.error),
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .wrapContentSize()
+                                    .align(Alignment.Center)
+                            )
+
+                            // TODO 이미지 로드가 완료된 다음 전달하도록 코루틴으로 제어 필요
+                            // 툴바에 버튼을 보이라고 인텐트로 전달
+                            LaunchedEffect(selectedUrl) {
+                                photoViewModel.handleIntent(PhotoIntent.UpdateButtonVisibility(selectedUrl.isNotBlank()))
+                            }
+                        }
                     }
-                    .build()
-
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data("https://firebasestorage.googleapis.com/v0/b/userstory-e9437.firebasestorage.app/o/deco_svg_images%2Fdeco_1.svg?alt=media&token=d729269f-72c0-499c-8da0-dc2621703ec1")
-                        .size(1024, 1024)
-                        .build(),
-                    contentDescription = "Loaded Image",
-                    imageLoader = imageLoader,
-//                    error = painterResource(R.drawable.error),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .wrapContentSize()
-                        .align(Alignment.Center)
-                )
-
-                // TODO 이미지 로드가 완료된 다음 전달하도록 코루틴으로 제어 필요
-                // 툴바에 버튼을 보이라고 인텐트로 전달
-                DisposableEffect(selectedUrl) {
-                    photoViewModel.handleIntent(PhotoIntent.UpdateButtonVisibility(selectedUrl.isNotBlank()))
-
-                    onDispose {
-                        photoViewModel.handleIntent(PhotoIntent.UpdateButtonVisibility(false))
-                    }
+                },
+                onSave = { bitmap ->
+                    saveBitmapToGallery(context, bitmap)
+                    photoViewModel.handleIntent(PhotoIntent.UpdateSavingState(false))
+                    // state 를 false  로 변경한 다음 메인으로 이동
+                    navigateToMain()
                 }
-
-            }
-
+            )
         }
 
         Box(
@@ -135,7 +149,7 @@ fun DecoItem(
     decoItem: String,
     onClick: (String) -> Unit // 클릭 시 url 전달
 ) {
-    CoilWithImageState() { url ->
+    CoilWithImageState { url ->
         onClick(url)
     }
 }
