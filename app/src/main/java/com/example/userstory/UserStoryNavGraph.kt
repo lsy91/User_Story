@@ -17,6 +17,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -65,9 +67,11 @@ fun UserStoryNavGraph(
                     // 사진 리스트 화면, 사진 화면은 뒤로가기 아이콘을 넣어준다.
                     if (!currentRoute.contains("AlbumList")) {
                         // 뒤로가기 아이콘 추가
-                        IconButton(onClick = {
-                            navController.popBackStack() // 이전 화면으로 이동
-                        }) {
+                        IconButton(
+                            onClick = {
+                                navController.popBackStack()
+                            }
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.ArrowBack,
                                 contentDescription = "backward",
@@ -78,7 +82,15 @@ fun UserStoryNavGraph(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = UserStoryBackgroundColor
-                )
+                ),
+                modifier =
+                    // 앨범 리스트를 제외한 나머지 화면들은 툴바에 그림자효과를 준다.
+                    if (!currentRoute.contains("AlbumList")) {
+                        Modifier.shadow(elevation = 3.dp)
+                    } else {
+                        Modifier
+                    }
+
             )
         }
     ) { innerPadding ->
@@ -130,7 +142,9 @@ fun UserStoryNavGraph(
 
                     Log.e("sy.lee", photoListArguments.toString())
 
-                    PhotoListScreen()
+                    PhotoListScreen(
+                        navigateToScreen = navigateToScreen
+                    )
                 }
 
                 composable(

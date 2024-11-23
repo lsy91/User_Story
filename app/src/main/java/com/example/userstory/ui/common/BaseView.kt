@@ -52,7 +52,7 @@ fun <T> BaseLazyVerticalGrid(
     verticalSpacing: Int = 8, // 아이템 간 수직 간격
     horizontalSpacing: Int = 8, // 아이템 간 수평 간격
     modifier: Modifier = Modifier,
-    itemContent: @Composable LazyGridItemScope.(item: T) -> Unit // 각 아이템의 UI 정의
+    itemContent: @Composable LazyGridItemScope.(item: T) -> Unit
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),

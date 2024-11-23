@@ -123,8 +123,9 @@ fun AlbumList(
                 horizontal = 6.dp,
                 vertical = 16.dp
             )
-    ) { album ->
+    ) { albumKey ->
         AlbumCard(
+            albumKey = albumKey,
             navigateToScreen = navigateToScreen // 아이템 UI 정의
         )
     }
@@ -132,13 +133,22 @@ fun AlbumList(
 
 @Composable
 fun AlbumCard(
+    albumKey: String,
     navigateToScreen: (String, Any?) -> Unit
 ) {
+
+    // Test
+    val context = LocalContext.current
+
     Card(
         shape = RoundedCornerShape(3.dp),
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
+
+                // Test
+                Toast.makeText(context, albumKey, Toast.LENGTH_SHORT).show()
+
                 // TODO 사진 리스트로 이동
                 navigateToScreen(
                     "PhotoList",
@@ -154,7 +164,7 @@ fun AlbumCard(
             // TODO 폴더의 첫번째 이미지
             Image(
                 painter = painterResource(id = R.drawable.ic_launcher_background), // 이미지 리소스
-                contentDescription = "Minimal Leaf",
+                contentDescription = "First Photo",
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f),
