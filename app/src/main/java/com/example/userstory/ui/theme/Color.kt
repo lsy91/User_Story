@@ -14,3 +14,6 @@ val UserStoryFontColor = Color(0xFF336959)
 val UserStoryTabIndicatorColor = Color(0xFF336959)
 val UserStoryBackgroundColor = Color(0xFFFFFBE6)
 val UserStoryCardDescriptionBackgroundColor = Color(0xFFE3EBD8)
+
+val UserStoryOverlayTextColor = Color(0xFFFFFBE6)
+val UserStoryOverlayButtonBackgroundColor = Color(0xFF336959)

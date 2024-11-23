@@ -1,8 +1,6 @@
 package com.example.userstory.ui.common
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridItemScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -39,8 +37,6 @@ fun BaseText(
             platformStyle = PlatformTextStyle(includeFontPadding = false)
         ),
         modifier = modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
     )
 }
 

@@ -3,10 +3,14 @@ package com.example.userstory
 import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -14,11 +18,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -28,10 +34,13 @@ import androidx.navigation.navArgument
 import com.example.userstory.ui.common.BaseText
 import com.example.userstory.ui.feature.album_list.AlbumListScreen
 import com.example.userstory.ui.feature.photo.PhotoScreen
+import com.example.userstory.ui.feature.photo.PhotoViewModel
 import com.example.userstory.ui.feature.photo_list.PhotoListScreen
 import com.example.userstory.ui.theme.RobotoRegular
 import com.example.userstory.ui.theme.UserStoryBackgroundColor
 import com.example.userstory.ui.theme.UserStoryFontColor
+import com.example.userstory.ui.theme.UserStoryOverlayButtonBackgroundColor
+import com.example.userstory.ui.theme.UserStoryOverlayTextColor
 import com.example.userstory.utils.CommonUtils
 import kotlinx.coroutines.CoroutineScope
 
@@ -42,8 +51,12 @@ fun UserStoryNavGraph(
     navController: NavHostController,
     navigateToScreen: (String, Any?) -> Unit,
     navigateToMain: () -> Unit,
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
+    photoViewModel: PhotoViewModel = viewModel() // Inject ViewModel
 ) {
+
+    val photoState by photoViewModel.state.collectAsState()
+
     Scaffold(
         topBar = {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -63,6 +76,32 @@ fun UserStoryNavGraph(
                         fontWeight = 700,
                         fontFamily = RobotoRegular
                     )
+                },
+                actions = {
+                    // 현재 화면이 PhotoScreen 이면서 버튼을 보여야 하는 경우인지 체크
+                    if (currentRoute.contains("Photo") && photoState.isButtonVisible) {
+                        Button(
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = UserStoryOverlayButtonBackgroundColor
+                            ),
+                            onClick = {
+                                // TODO 사진 저장 후 메인 이동
+                                navigateToMain()
+                            },
+                            contentPadding = PaddingValues(horizontal = 30.dp, vertical = 8.dp),
+                            modifier = Modifier
+                                .wrapContentSize()
+                                .padding(end = 10.dp)
+                        ) {
+                            BaseText(
+                                text = "Overlay",
+                                fontSize = 12,
+                                fontColor = UserStoryOverlayTextColor,
+                                modifier = Modifier
+                                    .wrapContentSize()
+                            )
+                        }
+                    }
                 },
                 navigationIcon = {
                     // 사진 리스트 화면, 사진 화면은 뒤로가기 아이콘을 넣어준다.
@@ -168,7 +207,7 @@ fun UserStoryNavGraph(
                     Log.e("sy.lee", photoArguments.toString())
 
                     PhotoScreen(
-                        navigateToMain = navigateToMain
+                        photoViewModel = photoViewModel,
                     )
                 }
             }

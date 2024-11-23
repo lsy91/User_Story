@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,7 +33,7 @@ import com.example.userstory.utils.CoilWithImageState
 
 @Composable
 fun PhotoScreen(
-    navigateToMain: () -> Unit,
+    photoViewModel: PhotoViewModel,
 ) {
     val decoItems = List(10) { "Deco $it" } // 10개의 아이템 리스트
 
@@ -79,6 +80,17 @@ fun PhotoScreen(
                         .wrapContentSize()
                         .align(Alignment.Center)
                 )
+
+                // TODO 이미지 로드가 완료된 다음 전달하도록 코루틴으로 제어 필요
+                // 툴바에 버튼을 보이라고 인텐트로 전달
+                DisposableEffect(selectedUrl) {
+                    photoViewModel.handleIntent(PhotoIntent.UpdateButtonVisibility(selectedUrl.isNotBlank()))
+
+                    onDispose {
+                        photoViewModel.handleIntent(PhotoIntent.UpdateButtonVisibility(false))
+                    }
+                }
+
             }
 
         }
@@ -107,7 +119,9 @@ fun PhotoScreen(
                     items = decoItems,
                     key = { _, demoItem -> demoItem }
                 ) {_, decoItem ->
-                    DecoItem(decoItem) { url ->
+                    DecoItem(
+                        decoItem
+                    ) { url ->
                         selectedUrl = url
                     }
                 }
