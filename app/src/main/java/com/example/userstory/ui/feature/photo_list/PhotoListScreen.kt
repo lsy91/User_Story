@@ -71,7 +71,7 @@ fun PhotoCard(
     ) {
         Image(
             painter = painterResource(id = R.drawable.ic_launcher_background), // 이미지 리소스
-            contentDescription = "Selected Photo",
+            contentDescription = "Selectable Photo",
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f),

@@ -1,4 +1,6 @@
 plugins {
+    id("com.google.gms.google-services") version "4.4.2" apply false
+
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
 }
@@ -78,4 +80,12 @@ dependencies {
 
     // Gson
     implementation(libs.converter.gson)
+
+    // Coil
+    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation("io.coil-kt:coil-svg:2.4.0")
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
+    implementation("com.google.firebase:firebase-analytics")
 }

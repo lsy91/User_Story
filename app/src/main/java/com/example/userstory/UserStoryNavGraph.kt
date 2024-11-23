@@ -27,6 +27,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.userstory.ui.common.BaseText
 import com.example.userstory.ui.feature.album_list.AlbumListScreen
+import com.example.userstory.ui.feature.photo.PhotoScreen
 import com.example.userstory.ui.feature.photo_list.PhotoListScreen
 import com.example.userstory.ui.theme.RobotoRegular
 import com.example.userstory.ui.theme.UserStoryBackgroundColor
@@ -148,9 +149,27 @@ fun UserStoryNavGraph(
                 }
 
                 composable(
-                    route = ScreenRoute.PhotoRoute.route
-                ) {
+                    route = ScreenRoute.PhotoRoute.route + "/{Photo}",
+                    arguments = listOf(
+                        navArgument("Photo") {
+                            type = NavType.StringType
+                            defaultValue = ""
+                        }
+                    )
+                ) {backStackEntry ->
+                    // TODO Test
+                    // 선택한 Photo 가져오기
+                    val encodedPhotoData = backStackEntry.arguments?.getString("Photo") ?: ""
+                    val decodedPhoto = Uri.decode(encodedPhotoData)
 
+                    // JSON을 객체로 변환
+                    val photoArguments = CommonUtils.convertJSONToObj<String>(decodedPhoto, String::class.java)
+
+                    Log.e("sy.lee", photoArguments.toString())
+
+                    PhotoScreen(
+                        navigateToMain = navigateToMain
+                    )
                 }
             }
         }
