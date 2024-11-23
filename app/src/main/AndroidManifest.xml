@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- To Use Firebase Web Storage -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- To handle the reselection within the app on Android 14 (API level 34) -->
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
 

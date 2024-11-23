@@ -4,7 +4,6 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.example.userstory.ui.theme.UserStoryTheme
 import com.example.userstory.utils.PermissionHelper
 
 class MainActivity : ComponentActivity() {
@@ -19,9 +18,7 @@ class MainActivity : ComponentActivity() {
         handlePermissions()
 
         setContent {
-            UserStoryTheme {
-
-            }
+            UserStoryApp()
         }
     }
 
@@ -35,7 +32,6 @@ class MainActivity : ComponentActivity() {
                 )
 
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> listOf(
-                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     android.Manifest.permission.READ_EXTERNAL_STORAGE
                 )
 

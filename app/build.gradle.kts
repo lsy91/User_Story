@@ -1,4 +1,6 @@
 plugins {
+    id("com.google.gms.google-services") version "4.4.2" apply false
+
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
 }
@@ -59,6 +61,14 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation("androidx.compose.material3:material3:1.3.1")
+    implementation(libs.androidx.runtime.android)
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.foundation.layout)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.activity.compose.v161)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -66,4 +76,15 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // Gson
+    implementation(libs.converter.gson)
+
+    // Coil
+    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation("io.coil-kt:coil-svg:2.4.0")
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
+    implementation("com.google.firebase:firebase-analytics")
 }
