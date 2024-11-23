@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,19 +37,22 @@ fun CoilWithImageState(
     val context = LocalContext.current
 
     // SVG 이미지 로드 state 별로 각각 동작을 처리하기 위해 AsyncImagePainter 와 Image Composable 사용
-    val decoImageUrl = "https://firebasestorage.googleapis.com/v0/b/userstory-e9437.firebasestorage.app/o/deco_svg_images%2Fdeco_border_2.svg?alt=media&token=29bec2b9-3d53-4f15-9531-ea6499a7fdaa"
+    val decoImageUrl = "https://firebasestorage.googleapis.com/v0/b/userstory-e9437.firebasestorage.app/o/deco_svg_images%2Fdeco_border_1.svg?alt=media&token=097aa6dc-15b2-4608-a8fb-b4fd7e14c5a5"
 
-    val imageLoader = ImageLoader.Builder(context)
-        .components { add(SvgDecoder.Factory()) } // SVG 디코더 추가
-        .memoryCachePolicy(CachePolicy.ENABLED) // 메모리 캐싱 활성화
-        .diskCachePolicy(CachePolicy.ENABLED) // 디스크 캐싱 활성화
-        .build()
+    val imageLoader = remember {
+        ImageLoader.Builder(context)
+            .crossfade(true)
+            .components { add(SvgDecoder.Factory()) }
+            .memoryCachePolicy(CachePolicy.ENABLED)
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .respectCacheHeaders(false)
+            .build()
+    }
 
     val painter = rememberAsyncImagePainter(
         model = ImageRequest.Builder(context)
             .data(decoImageUrl)
             .size(200,200)
-            .networkCachePolicy(CachePolicy.DISABLED) // 첫 로드 후에 네트워크 요청 비활성화
             .build(),
         imageLoader = imageLoader
     )

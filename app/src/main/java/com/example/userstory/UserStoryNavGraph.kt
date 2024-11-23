@@ -24,7 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -52,7 +52,7 @@ fun UserStoryNavGraph(
     navigateToScreen: (String, Any?) -> Unit,
     navigateToMain: () -> Unit,
     coroutineScope: CoroutineScope,
-    photoViewModel: PhotoViewModel = viewModel() // Inject ViewModel
+    photoViewModel: PhotoViewModel = hiltViewModel() // Inject ViewModel
 ) {
 
     val photoState by photoViewModel.state.collectAsState()
