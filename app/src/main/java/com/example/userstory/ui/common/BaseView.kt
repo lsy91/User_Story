@@ -81,18 +81,19 @@ fun <T> BaseLazyVerticalGrid(
 
 @Composable
 fun BaseShimmer(
-    shimmer: Shimmer
+    shimmer: Shimmer,
+    contentHeight: Int,
 ) {
     AndroidView(
         factory = { context ->
             ShimmerFrameLayout(context).apply {
                 setShimmer(shimmer)
-                setBackgroundColor(Color.LightGray.toArgb()) // 어두운 배경 설정
+                setBackgroundColor(Color.LightGray.toArgb())
                 startShimmer()
             }
         },
         modifier = Modifier
             .fillMaxWidth()
-            .height(100.dp)
+            .height(contentHeight.dp)
     )
 }

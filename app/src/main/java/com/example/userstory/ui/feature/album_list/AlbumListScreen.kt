@@ -1,6 +1,5 @@
 package com.example.userstory.ui.feature.album_list
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -27,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,6 +36,7 @@ import com.example.userstory.ui.common.BaseText
 import com.example.userstory.ui.theme.UserStoryBackgroundColor
 import com.example.userstory.ui.theme.UserStoryCardDescriptionBackgroundColor
 import com.example.userstory.ui.theme.UserStoryTabIndicatorColor
+import com.facebook.shimmer.Shimmer
 
 @Composable
 fun AlbumListScreen(
@@ -108,7 +107,7 @@ fun AlbumList(
     albumListViewModel: AlbumListViewModel = hiltViewModel(),
     navigateToScreen: (String, Any?) -> Unit
 ) {
-    val context = LocalContext.current
+    // shimmer
     val shimmer = albumListViewModel.provideShimmer()
 
     // Test
@@ -127,12 +126,10 @@ fun AlbumList(
                 vertical = 16.dp
             )
     ) { albumKey ->
-//        AlbumCard(
-//            albumKey = albumKey,
-//            navigateToScreen = navigateToScreen // 아이템 UI 정의
-//        )
-        BaseShimmer(
-            shimmer = shimmer
+        AlbumCard(
+            albumKey = albumKey,
+            shimmer = shimmer,
+            navigateToScreen = navigateToScreen // 아이템 UI 정의
         )
     }
 }
@@ -140,23 +137,14 @@ fun AlbumList(
 @Composable
 fun AlbumCard(
     albumKey: String,
+    shimmer: Shimmer,
     navigateToScreen: (String, Any?) -> Unit
 ) {
-
-    // Test
-    val context = LocalContext.current
-
     Card(
         shape = RoundedCornerShape(3.dp),
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-
-                // Test
-                Toast
-                    .makeText(context, albumKey, Toast.LENGTH_SHORT)
-                    .show()
-
                 // TODO 사진 리스트로 이동
                 navigateToScreen(
                     "PhotoList",
@@ -169,6 +157,12 @@ fun AlbumCard(
             modifier = Modifier
                 .fillMaxSize()
         ) {
+
+//            BaseShimmer(
+//                shimmer = shimmer,
+//                contentHeight = 200
+//            )
+
             // TODO 폴더의 첫번째 이미지
             Image(
                 painter = painterResource(id = R.drawable.ic_launcher_background), // 이미지 리소스
