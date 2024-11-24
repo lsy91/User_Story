@@ -4,6 +4,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.provider.MediaStore
 import android.util.Log
+import com.example.userstory.ui.feature.album_list.bean.AlbumList
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
@@ -65,7 +66,7 @@ object CommonUtils {
 
     // 미디어 폴더/파일 접근 함수 (이미지 파일만)
     // 허용된 이미지들을 앨범별로 정리 데이터를 가져옴
-    fun accessAllMediaFilesGroupedByFolder(context: Context) {
+    fun accessAllMediaFilesGroupedByFolder(context: Context): List<AlbumList> {
         // 필요한 컬럼 지정
         val projection = arrayOf(
             MediaStore.Images.Media._ID,
@@ -102,16 +103,13 @@ object CommonUtils {
             }
         }
 
-        if (folderMap.isNotEmpty()) {
-            folderMap.forEach { (folder, uris) ->
-                Log.e("MediaAccess", "Folder: $folder, Image Count: ${uris.size}")
-                uris.forEach { uri ->
-                    Log.e("MediaAccess", "Image URI: $uri")
-                }
-            }
-        } else {
-            Log.e("MediaAccess", "No media files found.")
+        // folderMap 을 List<AlbumList>로 변환
+        return folderMap.map { (folderName, uris) ->
+            AlbumList(
+                name = folderName,
+                photos = uris,
+                photoCount = uris.size
+            )
         }
     }
-
 }
