@@ -8,6 +8,7 @@ import com.facebook.shimmer.Shimmer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,7 +23,9 @@ class PhotoListViewModel @Inject constructor(
     fun handleIntent(intent: PhotoListIntent, album: Album? = null) {
         when (intent) {
             is PhotoListIntent.ChangeToolbarTitle -> {
-                _state.value = _state.value.copy(toolbarTitle = intent.title ?: "")
+                _state.update {
+                    it.copy(toolbarTitle = intent.title ?: "")
+                }
             }
             is PhotoListIntent.LoadPhotoList -> {
                 loadPhotoList(album)
@@ -32,18 +35,24 @@ class PhotoListViewModel @Inject constructor(
 
     private fun loadPhotoList(album: Album?) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isPhotoListLoading = true)
+            _state.update {
+                it.copy(isPhotoListLoading = true)
+            }
 
             try {
                 val photoList = photoListRepository.loadPhotoList(album)
-                _state.value = PhotoListState(
-                    isPhotoListLoading = false,
-                    photoList = photoList,
-                )
+                _state.update {
+                    it.copy(
+                        isPhotoListLoading = false,
+                        photoList = photoList,
+                    )
+                }
             } catch (e: Exception) {
-                _state.value = PhotoListState(
-                    isPhotoListLoading = false,
-                )
+                _state.update {
+                    it.copy(
+                        isPhotoListLoading = false,
+                    )
+                }
             }
         }
     }

@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,29 +22,28 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
-import com.example.userstory.R
 import com.example.userstory.utils.CoilWithImageState
 import com.example.userstory.utils.SaveComposableAsImage
 import com.example.userstory.utils.saveBitmapToGallery
 
 @Composable
 fun PhotoScreen(
+    selectedPhoto: String?,
     photoViewModel: PhotoViewModel,
+    photoState: PhotoState,
     navigateToMain: () -> Unit
 ) {
     val decoItems = List(10) { "Deco $it" } // 10개의 아이템 리스트
 
-    // TODO Test 선택된 Image Url 상태 관리
-    var selectedUrl by remember { mutableStateOf("") }
+    // 선택된 Image Url 상태 관리
+    var selectedDecoItemUrl by remember { mutableStateOf("") }
     val context = LocalContext.current
-
-    val photoState by photoViewModel.state.collectAsState()
 
     Column(
         modifier = Modifier
@@ -63,13 +61,13 @@ fun PhotoScreen(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.ic_launcher_background), // 이미지 리소스
+                            painter = rememberAsyncImagePainter(selectedPhoto),
                             contentDescription = "Selected Photo",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
                         )
 
-                        if (selectedUrl.isNotBlank()) {
+                        if (selectedDecoItemUrl.isNotBlank()) {
 
                             // 간단히 SVG 이미지 로드
                             val imageLoader = ImageLoader.Builder(context)
@@ -92,10 +90,9 @@ fun PhotoScreen(
                                     .align(Alignment.Center)
                             )
 
-                            // TODO 이미지 로드가 완료된 다음 전달하도록 코루틴으로 제어 필요
                             // 툴바에 버튼을 보이라고 인텐트로 전달
-                            LaunchedEffect(selectedUrl) {
-                                photoViewModel.handleIntent(PhotoIntent.UpdateButtonVisibility(selectedUrl.isNotBlank()))
+                            LaunchedEffect(selectedDecoItemUrl) {
+                                photoViewModel.handleIntent(PhotoIntent.UpdateButtonVisibility(selectedDecoItemUrl.isNotBlank()))
                             }
                         }
                     }
@@ -136,7 +133,7 @@ fun PhotoScreen(
                     DecoItem(
                         decoItem
                     ) { url ->
-                        selectedUrl = url
+                        selectedDecoItemUrl = url
                     }
                 }
             }

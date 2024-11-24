@@ -2,6 +2,8 @@ package com.example.userstory.di
 
 import com.example.userstory.ui.feature.album_list.AlbumListRepository
 import com.example.userstory.ui.feature.album_list.IAlbumListRepository
+import com.example.userstory.ui.feature.photo.IPhotoRepository
+import com.example.userstory.ui.feature.photo.PhotoRepository
 import com.example.userstory.ui.feature.photo_list.IPhotoListRepository
 import com.example.userstory.ui.feature.photo_list.PhotoListRepository
 import dagger.Binds
@@ -21,4 +23,9 @@ abstract class AppModule {
     abstract fun bindPhotoListRepository(
         photoListRepository: PhotoListRepository
     ): IPhotoListRepository
+
+    @Binds
+    abstract fun bindPhotoRepository(
+        photoRepository: PhotoRepository
+    ): IPhotoRepository
 }

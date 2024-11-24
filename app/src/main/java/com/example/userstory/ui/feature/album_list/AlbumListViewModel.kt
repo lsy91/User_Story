@@ -7,6 +7,7 @@ import com.facebook.shimmer.Shimmer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,18 +28,26 @@ class AlbumListViewModel @Inject constructor(
 
     private fun loadAlbums() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isAlbumListLoading = true)
+            _state.update {
+                it.copy(
+                    isAlbumListLoading = true
+                )
+            }
 
             try {
                 val albums = albumListRepository.loadAlbumsGroupedByFolder()
-                _state.value = AlbumListState(
-                    isAlbumListLoading = false,
-                    albums = albums
-                )
+                _state.update {
+                    it.copy(
+                        isAlbumListLoading = false,
+                        albums = albums
+                    )
+                }
             } catch (e: Exception) {
-                _state.value = AlbumListState(
-                    isAlbumListLoading = false
-                )
+                _state.update {
+                    it.copy(
+                        isAlbumListLoading = false
+                    )
+                }
             }
         }
     }

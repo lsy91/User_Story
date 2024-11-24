@@ -17,8 +17,8 @@ class PhotoViewModel @Inject constructor(
     fun handleIntent(intent: PhotoIntent) {
         when (intent) {
             is PhotoIntent.UpdateButtonVisibility -> {
-                _state.update { currentState ->
-                    currentState.copy(isButtonVisible = intent.isVisible)
+                _state.update {
+                    it.copy(isButtonVisible = intent.isVisible)
                 }
             }
             is PhotoIntent.UpdateSavingState -> {

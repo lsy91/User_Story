@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
@@ -24,12 +22,10 @@ import com.facebook.shimmer.Shimmer
 @Composable
 fun PhotoListScreen(
     album: Album?,
+    photoListState: PhotoListState,
     photoListViewModel: PhotoListViewModel,
     navigateToScreen: (String, Any?) -> Unit
 ) {
-
-    val photoListState by photoListViewModel.state.collectAsState()
-
     // shimmer
     val shimmer = photoListViewModel.provideShimmer()
 
@@ -71,10 +67,10 @@ fun PhotoCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                // TODO 사진으로 이동
+                // 사진으로 이동
                 navigateToScreen(
                     "Photo",
-                    "{Arguments : Photo}"
+                    photoUri
                 )
             }
     ) {

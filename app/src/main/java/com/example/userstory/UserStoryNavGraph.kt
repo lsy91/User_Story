@@ -1,7 +1,6 @@
 package com.example.userstory
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +32,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.userstory.ui.common.BaseText
 import com.example.userstory.ui.feature.album_list.AlbumListScreen
+import com.example.userstory.ui.feature.album_list.AlbumListViewModel
 import com.example.userstory.ui.feature.album_list.bean.Album
 import com.example.userstory.ui.feature.photo.PhotoIntent
 import com.example.userstory.ui.feature.photo.PhotoScreen
@@ -55,10 +55,11 @@ fun UserStoryNavGraph(
     navigateToMain: () -> Unit,
     coroutineScope: CoroutineScope
 ) {
-
-    val photoListViewModel: PhotoListViewModel = hiltViewModel() // ViewModel 상위에서 호출
+    val albumListViewModel: AlbumListViewModel = hiltViewModel()
+    val photoListViewModel: PhotoListViewModel = hiltViewModel()
     val photoViewModel: PhotoViewModel = hiltViewModel()
 
+    val albumListState by albumListViewModel.state.collectAsState()
     val photoListState by photoListViewModel.state.collectAsState()
     val photoState by photoViewModel.state.collectAsState()
 
@@ -161,6 +162,8 @@ fun UserStoryNavGraph(
                     route = ScreenRoute.AlbumListRoute.route
                 ) {
                     AlbumListScreen(
+                        albumListViewModel = albumListViewModel,
+                        albumListState = albumListState,
                         navigateToScreen = navigateToScreen
                     )
                 }
@@ -182,6 +185,7 @@ fun UserStoryNavGraph(
                     PhotoListScreen(
                         album = album,
                         photoListViewModel = photoListViewModel,
+                        photoListState = photoListState,
                         navigateToScreen = navigateToScreen
                     )
                 }
@@ -195,18 +199,15 @@ fun UserStoryNavGraph(
                         }
                     )
                 ) {backStackEntry ->
-                    // TODO Test
                     // 선택한 Photo 가져오기
                     val encodedPhotoData = backStackEntry.arguments?.getString("Photo") ?: ""
                     val decodedPhoto = Uri.decode(encodedPhotoData)
-
-                    // JSON을 객체로 변환
-                    val photoArguments = CommonUtils.convertJSONToObj<String>(decodedPhoto, String::class.java)
-
-                    Log.e("sy.lee", photoArguments.toString())
+                    val selectedPhoto = CommonUtils.convertJSONToObj<String>(decodedPhoto, String::class.java)
 
                     PhotoScreen(
+                        selectedPhoto = selectedPhoto,
                         photoViewModel = photoViewModel,
+                        photoState = photoState,
                         navigateToMain = navigateToMain,
                     )
                 }

@@ -19,7 +19,6 @@ import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -29,7 +28,6 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.userstory.ui.common.BaseLazyVerticalGrid
 import com.example.userstory.ui.common.BaseShimmer
@@ -42,12 +40,10 @@ import com.facebook.shimmer.Shimmer
 
 @Composable
 fun AlbumListScreen(
-    albumListViewModel: AlbumListViewModel = hiltViewModel(),
+    albumListViewModel: AlbumListViewModel,
+    albumListState: AlbumListState,
     navigateToScreen: (String, Any?) -> Unit
 ) {
-    // State
-    val albumListState by albumListViewModel.state.collectAsState()
-
     // shimmer
     val shimmer = albumListViewModel.provideShimmer()
 
