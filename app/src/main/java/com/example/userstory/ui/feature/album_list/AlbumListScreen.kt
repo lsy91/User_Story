@@ -30,8 +30,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.userstory.R
 import com.example.userstory.ui.common.BaseLazyVerticalGrid
+import com.example.userstory.ui.common.BaseShimmer
 import com.example.userstory.ui.common.BaseText
 import com.example.userstory.ui.theme.UserStoryBackgroundColor
 import com.example.userstory.ui.theme.UserStoryCardDescriptionBackgroundColor
@@ -103,12 +105,13 @@ fun AlbumListScreen(
 @Composable
 fun AlbumList(
     albumData: String,
+    albumListViewModel: AlbumListViewModel = hiltViewModel(),
     navigateToScreen: (String, Any?) -> Unit
 ) {
     val context = LocalContext.current
+    val shimmer = albumListViewModel.provideShimmer()
 
     // Test
-    Toast.makeText(context, albumData, Toast.LENGTH_SHORT).show()
     val albumList = listOf("1","2","3","4","5","6","7")
 
     BaseLazyVerticalGrid(
@@ -124,9 +127,12 @@ fun AlbumList(
                 vertical = 16.dp
             )
     ) { albumKey ->
-        AlbumCard(
-            albumKey = albumKey,
-            navigateToScreen = navigateToScreen // 아이템 UI 정의
+//        AlbumCard(
+//            albumKey = albumKey,
+//            navigateToScreen = navigateToScreen // 아이템 UI 정의
+//        )
+        BaseShimmer(
+            shimmer = shimmer
         )
     }
 }
@@ -147,7 +153,9 @@ fun AlbumCard(
             .clickable {
 
                 // Test
-                Toast.makeText(context, albumKey, Toast.LENGTH_SHORT).show()
+                Toast
+                    .makeText(context, albumKey, Toast.LENGTH_SHORT)
+                    .show()
 
                 // TODO 사진 리스트로 이동
                 navigateToScreen(
@@ -190,7 +198,9 @@ fun AlbumCard(
                     fontWeight = 500
                 )
 
-                Spacer(modifier = Modifier.fillMaxWidth().height(3.dp))
+                Spacer(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(3.dp))
 
                 BaseText(
                     text = "0 Images",
