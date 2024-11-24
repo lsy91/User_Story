@@ -39,6 +39,7 @@ import com.example.userstory.ui.feature.photo.PhotoScreen
 import com.example.userstory.ui.feature.photo.PhotoViewModel
 import com.example.userstory.ui.feature.photo_list.PhotoListScreen
 import com.example.userstory.ui.feature.photo_list.PhotoListViewModel
+import com.example.userstory.ui.feature.photo_picker.PhotoPickerScreen
 import com.example.userstory.ui.theme.RobotoRegular
 import com.example.userstory.ui.theme.UserStoryBackgroundColor
 import com.example.userstory.ui.theme.UserStoryFontColor
@@ -73,6 +74,7 @@ fun UserStoryNavGraph(
                     BaseText(
                         text = when {
                             currentRoute.contains("AlbumList") -> "ALBUM LIST"
+                            currentRoute.contains("PhotoPicker") -> "Select Photo"
                             else -> photoListState.toolbarTitle
                         },
                         fontSize = 18,
@@ -82,7 +84,7 @@ fun UserStoryNavGraph(
                     )
                 },
                 actions = {
-                    // 현재 화면이 PhotoScreen 이면서 버튼을 보여야 하는 경우인지 체크
+                    // 현재 화면이 PhotoScreen 이면서 Overlay 버튼을 보여야 하는 경우인지 체크
                     if (currentRoute.contains("Photo") && photoState.isButtonVisible) {
                         Button(
                             colors = ButtonDefaults.buttonColors(
@@ -99,6 +101,28 @@ fun UserStoryNavGraph(
                         ) {
                             BaseText(
                                 text = "Overlay",
+                                fontSize = 12,
+                                fontColor = UserStoryOverlayTextColor,
+                                modifier = Modifier
+                                    .wrapContentSize()
+                            )
+                        }
+                    } else if (currentRoute.contains("AlbumList")) {
+                        Button(
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = UserStoryOverlayButtonBackgroundColor
+                            ),
+                            onClick = {
+                                // Photo Picker 호출
+                                navigateToScreen("PhotoPicker", null)
+                            },
+                            contentPadding = PaddingValues(horizontal = 30.dp, vertical = 8.dp),
+                            modifier = Modifier
+                                .wrapContentSize()
+                                .padding(end = 10.dp)
+                        ) {
+                            BaseText(
+                                text = "More",
                                 fontSize = 12,
                                 fontColor = UserStoryOverlayTextColor,
                                 modifier = Modifier
@@ -198,7 +222,7 @@ fun UserStoryNavGraph(
                             defaultValue = ""
                         }
                     )
-                ) {backStackEntry ->
+                ) { backStackEntry ->
                     // 선택한 Photo 가져오기
                     val encodedPhotoData = backStackEntry.arguments?.getString("Photo") ?: ""
                     val decodedPhoto = Uri.decode(encodedPhotoData)
@@ -210,6 +234,12 @@ fun UserStoryNavGraph(
                         photoState = photoState,
                         navigateToMain = navigateToMain,
                     )
+                }
+
+                composable(
+                    route = ScreenRoute.PhotoPickerRoute.route
+                ) {
+                    PhotoPickerScreen()
                 }
             }
         }
@@ -225,4 +255,6 @@ sealed class ScreenRoute(val route: String) {
     data object PhotoListRoute : ScreenRoute("PhotoList")
 
     data object PhotoRoute : ScreenRoute("Photo")
+
+    data object PhotoPickerRoute: ScreenRoute("PhotoPicker")
 }

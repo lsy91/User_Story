@@ -22,31 +22,34 @@ class MainActivity : ComponentActivity() {
         permissionHelper = PermissionHelper(this)
 
         lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                handlePermissions()
-            }
-        }
+            // 권한 요청이 완료될 때까지 UI 를 그리지 않고 대기
+            val hasPermissions = handlePermissions()
 
-        setContent {
-            UserStoryApp()
+            if (hasPermissions) {
+                setContent {
+                    UserStoryApp()
+                }
+            } else {
+                // 권한 요청 Dialog 띄우기
+                permissionHelper.showSettingsDialog(this@MainActivity)
+            }
         }
     }
 
-    private fun handlePermissions() {
-        val permissionsToRequest =
-            when {
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> emptyList()
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> listOf(
-                    android.Manifest.permission.READ_MEDIA_IMAGES
-                )
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> listOf(
-                    android.Manifest.permission.READ_EXTERNAL_STORAGE
-                )
-                else -> listOf(
-                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-                )
-            }
+    private suspend fun handlePermissions(): Boolean {
+        val permissionsToRequest = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> emptyList()
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> listOf(
+                android.Manifest.permission.READ_MEDIA_IMAGES
+            )
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> listOf(
+                android.Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+            else -> listOf(
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+            )
+        }
 
-        permissionHelper.requestPermissions(this@MainActivity, permissionsToRequest)
+        return permissionHelper.requestPermissionsSuspend(this@MainActivity, permissionsToRequest)
     }
 }
