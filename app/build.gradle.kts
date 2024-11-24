@@ -1,11 +1,11 @@
 plugins {
-    id("com.google.gms.google-services") version "4.4.2" apply false
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
 
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
     id("dagger.hilt.android.plugin")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -89,7 +89,9 @@ dependencies {
 
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
-    implementation("com.google.firebase:firebase-analytics")
+    // Firebase Storage
+    implementation("com.google.firebase:firebase-storage-ktx:21.0.1")
+    implementation("com.google.firebase:firebase-storage:21.0.1")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.51.1")

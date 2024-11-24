@@ -1,5 +1,6 @@
 package com.example.userstory.ui.feature.photo
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,6 +42,15 @@ fun PhotoScreen(
 ) {
     val decoItems = List(10) { "Deco $it" } // 10개의 아이템 리스트
 
+    // Firebase 에서 이미지 파일 가져오기
+    LaunchedEffect(Unit) {
+        photoViewModel.handleIntent(PhotoIntent.GetBorderDecoItem)
+        photoViewModel.handleIntent(PhotoIntent.GetDecoItem)
+    }
+
+    Log.e("sy.lee", photoState.borderDecoItems.toString())
+    Log.e("sy.lee", photoState.decoItems.toString())
+
     // 선택된 Image Url 상태 관리
     var selectedDecoItemUrl by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -64,7 +74,7 @@ fun PhotoScreen(
                             painter = rememberAsyncImagePainter(selectedPhoto),
                             contentDescription = "Selected Photo",
                             modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.FillHeight
                         )
 
                         if (selectedDecoItemUrl.isNotBlank()) {

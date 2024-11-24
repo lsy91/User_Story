@@ -5,3 +5,13 @@ plugins {
 
     id("com.google.dagger.hilt.android") version "2.51.1" apply false
 }
+
+buildscript {
+    repositories {
+        google() // 반드시 필요
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.google.gms:google-services:4.4.2")
+    }
+}
