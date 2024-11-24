@@ -34,6 +34,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.userstory.ui.common.BaseLazyVerticalGrid
 import com.example.userstory.ui.common.BaseShimmer
 import com.example.userstory.ui.common.BaseText
+import com.example.userstory.ui.feature.album_list.bean.Album
 import com.example.userstory.ui.theme.UserStoryBackgroundColor
 import com.example.userstory.ui.theme.UserStoryCardDescriptionBackgroundColor
 import com.example.userstory.ui.theme.UserStoryTabIndicatorColor
@@ -134,9 +135,7 @@ fun AlbumList(
     ) {album ->
         AlbumCard(
             isAlbumListLoading = albumListState.isAlbumListLoading,
-            albumThumbNail = album.photos[0],
-            albumName = album.name,
-            albumCount = album.photoCount,
+            album = album,
             shimmer = shimmer,
             navigateToScreen = navigateToScreen // 아이템 UI 정의
         )
@@ -146,9 +145,7 @@ fun AlbumList(
 @Composable
 fun AlbumCard(
     isAlbumListLoading: Boolean,
-    albumThumbNail: String,
-    albumName: String,
-    albumCount: Int,
+    album: Album,
     shimmer: Shimmer,
     navigateToScreen: (String, Any?) -> Unit
 ) {
@@ -160,7 +157,7 @@ fun AlbumCard(
                 // 사진 리스트로 이동
                 navigateToScreen(
                     "PhotoList",
-                    "{Arguments : PhotoList}"
+                    album
                 )
             },
         elevation = CardDefaults.elevatedCardElevation(3.dp)
@@ -178,7 +175,7 @@ fun AlbumCard(
             else {
                 // 각 폴더의 첫번째 이미지
                 Image(
-                    painter = rememberAsyncImagePainter(albumThumbNail),
+                    painter = rememberAsyncImagePainter(album.photos[0]),
                     contentDescription = "First Photo",
                     modifier = Modifier
                         .fillMaxWidth()
@@ -200,7 +197,7 @@ fun AlbumCard(
                         )
                 ) {
                     BaseText(
-                        text = albumName,
+                        text = album.name,
                         fontSize = 13,
                         fontWeight = 500
                     )
@@ -210,7 +207,7 @@ fun AlbumCard(
                         .height(3.dp))
 
                     BaseText(
-                        text = albumCount.toString(),
+                        text = "${album.photoCount}",
                         fontSize = 11,
                         fontWeight = 500
                     )

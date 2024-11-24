@@ -33,10 +33,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.userstory.ui.common.BaseText
 import com.example.userstory.ui.feature.album_list.AlbumListScreen
+import com.example.userstory.ui.feature.album_list.bean.Album
 import com.example.userstory.ui.feature.photo.PhotoIntent
 import com.example.userstory.ui.feature.photo.PhotoScreen
 import com.example.userstory.ui.feature.photo.PhotoViewModel
 import com.example.userstory.ui.feature.photo_list.PhotoListScreen
+import com.example.userstory.ui.feature.photo_list.PhotoListViewModel
 import com.example.userstory.ui.theme.RobotoRegular
 import com.example.userstory.ui.theme.UserStoryBackgroundColor
 import com.example.userstory.ui.theme.UserStoryFontColor
@@ -51,10 +53,13 @@ fun UserStoryNavGraph(
     navController: NavHostController,
     navigateToScreen: (String, Any?) -> Unit,
     navigateToMain: () -> Unit,
-    coroutineScope: CoroutineScope,
-    photoViewModel: PhotoViewModel = hiltViewModel() // Inject ViewModel
+    coroutineScope: CoroutineScope
 ) {
 
+    val photoListViewModel: PhotoListViewModel = hiltViewModel() // ViewModel 상위에서 호출
+    val photoViewModel: PhotoViewModel = hiltViewModel()
+
+    val photoListState by photoListViewModel.state.collectAsState()
     val photoState by photoViewModel.state.collectAsState()
 
     Scaffold(
@@ -67,9 +72,7 @@ fun UserStoryNavGraph(
                     BaseText(
                         text = when {
                             currentRoute.contains("AlbumList") -> "ALBUM LIST"
-                            currentRoute.contains("PhotoList") -> "앨범명"
-                            currentRoute.contains("Photo") -> "앨범명"
-                            else -> ""
+                            else -> photoListState.toolbarTitle
                         },
                         fontSize = 18,
                         fontColor = UserStoryFontColor,
@@ -171,18 +174,14 @@ fun UserStoryNavGraph(
                         }
                     )
                 ) { backStackEntry ->
-
-                    // TODO Test
-                    // 선택한 앨범에서 전달받은 PhotoList 가져오기
+                    // 선택한 앨범에서 전달받은 앨범 데이터 가져오기
                     val encodedPhotoListData = backStackEntry.arguments?.getString("PhotoList") ?: ""
                     val decodedPhotoList = Uri.decode(encodedPhotoListData)
-
-                    // JSON을 객체로 변환
-                    val photoListArguments = CommonUtils.convertJSONToObj<String>(decodedPhotoList, String::class.java)
-
-                    Log.e("sy.lee", photoListArguments.toString())
+                    val album = CommonUtils.convertJSONToObj<Album>(decodedPhotoList, Album::class.java)
 
                     PhotoListScreen(
+                        album = album,
+                        photoListViewModel = photoListViewModel,
                         navigateToScreen = navigateToScreen
                     )
                 }
