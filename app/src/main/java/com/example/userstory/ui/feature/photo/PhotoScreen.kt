@@ -1,13 +1,16 @@
 package com.example.userstory.ui.feature.photo
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -29,6 +32,7 @@ import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
+import com.example.userstory.ui.common.BaseShimmer
 import com.example.userstory.utils.CoilWithImageState
 import com.example.userstory.utils.SaveComposableAsImage
 import com.example.userstory.utils.saveBitmapToGallery
@@ -40,16 +44,12 @@ fun PhotoScreen(
     photoState: PhotoState,
     navigateToMain: () -> Unit
 ) {
-    val decoItems = List(10) { "Deco $it" } // 10개의 아이템 리스트
+    val shimmer = photoViewModel.provideShimmer()
 
     // Firebase 에서 이미지 파일 가져오기
     LaunchedEffect(Unit) {
-        photoViewModel.handleIntent(PhotoIntent.GetBorderDecoItem)
         photoViewModel.handleIntent(PhotoIntent.GetDecoItem)
     }
-
-    Log.e("sy.lee", photoState.borderDecoItems.toString())
-    Log.e("sy.lee", photoState.decoItems.toString())
 
     // 선택된 Image Url 상태 관리
     var selectedDecoItemUrl by remember { mutableStateOf("") }
@@ -88,12 +88,11 @@ fun PhotoScreen(
 
                             AsyncImage(
                                 model = ImageRequest.Builder(context)
-                                    .data("https://firebasestorage.googleapis.com/v0/b/userstory-e9437.firebasestorage.app/o/deco_svg_images%2Fdeco_1.svg?alt=media&token=d729269f-72c0-499c-8da0-dc2621703ec1")
+                                    .data(selectedDecoItemUrl)
                                     .size(1024, 1024)
                                     .build(),
                                 contentDescription = "Loaded Image",
                                 imageLoader = imageLoader,
-                                // error = painterResource(R.drawable.error),
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .wrapContentSize()
@@ -126,24 +125,56 @@ fun PhotoScreen(
                     )
                 }
         ) {
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(), // 가로 전체 너비 사용
-                horizontalArrangement = Arrangement.spacedBy(16.dp), // 아이템 간 간격
-                contentPadding = PaddingValues(
-                    start = 40.dp,
-                    end = 40.dp,
-                    top = 40.dp,
-                    bottom = 30.dp
-                )
-            ) {
-                itemsIndexed(
-                    items = decoItems,
-                    key = { _, demoItem -> demoItem }
-                ) {_, decoItem ->
-                    DecoItem(
-                        decoItem
-                    ) { url ->
-                        selectedDecoItemUrl = url
+            if (photoState.isDecoItemLoading) {
+                // 로딩 중 Shimmer를 표시
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 40.dp, end = 40.dp, top = 40.dp, bottom = 30.dp), // 여백 설정
+                    horizontalArrangement = Arrangement.spacedBy(16.dp) // 아이템 간 간격 설정
+                ) {
+                    repeat(5) { // Shimmer를 3개 반복
+                        Box(
+                            modifier = Modifier
+                                .width(100.dp)
+                                .wrapContentHeight()
+                        ) {
+                            BaseShimmer(
+                                shimmer = shimmer,
+                                contentHeight = 100
+                            )
+                        }
+
+                    }
+                }
+            } else {
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(), // 가로 전체 너비 사용
+                    horizontalArrangement = Arrangement.spacedBy(16.dp), // 아이템 간 간격
+                    contentPadding = PaddingValues(
+                        start = 40.dp,
+                        end = 40.dp,
+                        top = 40.dp,
+                        bottom = 30.dp
+                    )
+                ) {
+                    if (photoState.decoItems.isEmpty()) {
+                        // 데이터가 없을 때 고정된 개수의 Shimmer 표시
+                        items(5) {
+                            BaseShimmer(
+                                shimmer = shimmer,
+                                contentHeight = 200 // Shimmer 높이 설정
+                            )
+                        }
+                    } else {
+                        // 데이터가 있을 때 실제 아이템 표시
+                        itemsIndexed(photoState.decoItems) { _, decoItem ->
+                            DecoItem(
+                                svgImageUrl = decoItem.svgImageUrl
+                            ) { url ->
+                                selectedDecoItemUrl = url.replace("_border", "")
+                            }
+                        }
                     }
                 }
             }
@@ -153,10 +184,10 @@ fun PhotoScreen(
 
 @Composable
 fun DecoItem(
-    decoItem: String,
+    svgImageUrl: String,
     onClick: (String) -> Unit // 클릭 시 url 전달
 ) {
-    CoilWithImageState { url ->
+    CoilWithImageState(svgImageUrl) { url ->
         onClick(url)
     }
 }

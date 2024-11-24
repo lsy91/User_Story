@@ -25,8 +25,7 @@ class PhotoRepository @Inject constructor() : IPhotoRepository {
             val downloadUrl = fileRef.downloadUrl.await().toString()
             DecoItem(
                 name = fileRef.name,
-                downloadTokens = null, // Firebase Storage SDK에서는 필요 없음
-                url = downloadUrl
+                svgImageUrl = downloadUrl
             )
         }
 

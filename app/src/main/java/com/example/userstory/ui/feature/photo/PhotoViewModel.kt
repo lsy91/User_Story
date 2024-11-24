@@ -2,6 +2,8 @@ package com.example.userstory.ui.feature.photo
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.userstory.di.ShimmerModule
+import com.facebook.shimmer.Shimmer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,11 +20,8 @@ class PhotoViewModel @Inject constructor(
 
     fun handleIntent(intent: PhotoIntent) {
         when (intent) {
-            is PhotoIntent.GetBorderDecoItem -> {
-                getDecoImages("deco_svg_images_border/")
-            }
             is PhotoIntent.GetDecoItem -> {
-                getDecoImages("deco_svg_images/")
+                getDecoImages()
             }
             is PhotoIntent.UpdateButtonVisibility -> {
                 _state.update {
@@ -36,29 +35,29 @@ class PhotoViewModel @Inject constructor(
         }
     }
 
-    private fun getDecoImages(path: String) {
+    private fun getDecoImages() {
         viewModelScope.launch {
             try {
-                when {
-                    path.equals("deco_svg_images_border/", ignoreCase = true) -> {
-                        _state.update {
-                            it.copy(
-                                borderDecoItems = photoRepository.getDecoImages(path).items
-                            )
-                        }
-                    }
-                    path.equals("deco_svg_images/", ignoreCase = true) -> {
-                        _state.update {
-                            it.copy(
-                                decoItems = photoRepository.getDecoImages(path).items
-                            )
-                        }
-                    }
+                _state.update {
+                    it.copy(
+                        decoItems = photoRepository.getDecoImages("deco_svg_images_border/").items,
+                        isDecoItemLoading = false
+                    )
                 }
 
             } catch (e: Exception) {
                 e.printStackTrace()
+
+                _state.update {
+                    it.copy(
+                        isDecoItemLoading = false
+                    )
+                }
             }
         }
+    }
+
+    fun provideShimmer(): Shimmer {
+        return ShimmerModule.provideShimmer()
     }
 }

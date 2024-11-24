@@ -31,14 +31,13 @@ import coil.request.ImageRequest
 
 @Composable
 fun CoilWithImageState(
+    svgImageUrl: String,
     onImageClicked: (String) -> Unit // 클릭 시 url 을 전달하는 콜백
 ) {
 
     val context = LocalContext.current
 
     // SVG 이미지 로드 state 별로 각각 동작을 처리하기 위해 AsyncImagePainter 와 Image Composable 사용
-    val decoImageUrl = "https://firebasestorage.googleapis.com/v0/b/userstory-e9437.firebasestorage.app/o/deco_svg_images%2Fdeco_border_1.svg?alt=media&token=097aa6dc-15b2-4608-a8fb-b4fd7e14c5a5"
-
     val imageLoader = remember {
         ImageLoader.Builder(context)
             .crossfade(true)
@@ -51,7 +50,7 @@ fun CoilWithImageState(
 
     val painter = rememberAsyncImagePainter(
         model = ImageRequest.Builder(context)
-            .data(decoImageUrl)
+            .data(svgImageUrl)
             .size(200,200)
             .build(),
         imageLoader = imageLoader
@@ -65,8 +64,7 @@ fun CoilWithImageState(
                     .fillMaxSize()
                     .aspectRatio(1f)
                     .clickable {
-                        // TODO
-                        onImageClicked(decoImageUrl)
+                        onImageClicked(svgImageUrl)
                     }
             ) {
                 Image(
@@ -86,10 +84,6 @@ fun CoilWithImageState(
                 modifier = Modifier
                     .fillMaxSize()
                     .aspectRatio(1f)
-                    .clickable {
-                        // TODO
-                        onImageClicked(decoImageUrl)
-                    }
             ) {
                 Image(
                     painter = ColorPainter(Color.Red),
@@ -99,15 +93,7 @@ fun CoilWithImageState(
                 )
             }
         }
-        else -> {
-            // 로딩 중
-            Image(
-                painter = ColorPainter(Color.Gray),
-                contentDescription = "Loading",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-        }
+        else -> {}
     }
 }
 
