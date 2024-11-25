@@ -1,6 +1,5 @@
 package com.example.userstory.ui.feature.photo_picker
 
-import android.content.Intent
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
@@ -23,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
@@ -34,24 +32,21 @@ import com.example.userstory.ui.theme.UserStoryOverlayButtonBackgroundColor
 import com.example.userstory.ui.theme.UserStoryOverlayTextColor
 import com.example.userstory.utils.AlbumNameInputDialog
 import com.example.userstory.utils.PickContent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @Composable
 fun PhotoPickerScreen(
     photoPickerViewModel: PhotoPickerViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
     val photoPickerState = photoPickerViewModel.state.collectAsState()
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = PickContent()
-    ) { uri ->
-        uri?.let {
-            Log.d("PhotoPicker", "Selected URI: $uri")
-
-            photoPickerViewModel.handleIntent(PhotoPickerIntent.SetAccessablePhotos(uri))
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            uris.forEach { uri ->
+                Log.e("PhotoPicker", "Selected URI: $uri")
+                photoPickerViewModel.handleIntent(PhotoPickerIntent.SaveAccessedPhoto(uri))
+            }
         }
     }
 
@@ -77,8 +72,8 @@ fun PhotoPickerScreen(
                 .weight(0.9f)
         ) {
             BaseLazyVerticalGrid(
-                items = photoPickerState.value.accessablePhotoList,
-                key = { index -> photoPickerState.value.accessablePhotoList[index] },
+                items = photoPickerState.value.accessedPhotoList,
+                key = { index -> photoPickerState.value.accessedPhotoList[index] },
                 columns = 3
             ) { photoUri ->
                 Card(
@@ -126,19 +121,6 @@ fun PhotoPickerScreen(
                         containerColor = UserStoryOverlayButtonBackgroundColor
                     ),
                     onClick = {
-                        // 읽기 / 쓰기 권한 부여
-                        val flag = Intent.FLAG_GRANT_READ_URI_PERMISSION
-
-                        // 권한 부여가 완료된 후에 다음 처리
-                        CoroutineScope(Dispatchers.IO).launch {
-                            photoPickerState.value.accessablePhotoList.forEach { accessablePhotoUri ->
-                                context.contentResolver.takePersistableUriPermission(accessablePhotoUri, flag)
-                            }
-                        }
-
-                        // ViewModel 에 권한 부여 완료된 이미지 URI 리스트 저장
-                        photoPickerViewModel.handleIntent(PhotoPickerIntent.SetAccessedPhotos(photoPickerState.value.accessablePhotoList))
-
                         // 앨범명 입력 다이얼로그 호출
                         photoPickerViewModel.handleIntent(PhotoPickerIntent.ShowFolderNameInputDialog(true))
                     }

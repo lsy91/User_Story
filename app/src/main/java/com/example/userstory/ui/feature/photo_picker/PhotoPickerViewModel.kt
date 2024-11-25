@@ -17,37 +17,21 @@ class PhotoPickerViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
 ): ViewModel() {
 
-    private val _state = MutableStateFlow(PhotoPickerState())
+    private val _state = MutableStateFlow(PhotoPickerState(
+        accessedPhotoList = emptyList()
+    ))
     val state: StateFlow<PhotoPickerState> = _state
 
     fun handleIntent(intent: PhotoPickerIntent) {
         when (intent) {
-            is PhotoPickerIntent.SetAccessablePhotos -> {
-                // 이미 포토피커로 가져온 이미지 제외
-                if (!state.value.accessablePhotoList.contains(intent.accessablePhoto)) {
-
-                    viewModelScope.launch {
-
-                        _state.update {
-                            it.copy(
-                                accessablePhotoList = it.accessablePhotoList + intent.accessablePhoto
-                            )
-                        }
-
-                        photoPickerRepository.setAccessablePhotos(context, state.value.accessablePhotoList)
-                    }
-                }
-            }
-            is PhotoPickerIntent.SetAccessedPhotos -> {
+            is PhotoPickerIntent.SaveAccessedPhoto -> {
 
                 viewModelScope.launch {
                     _state.update {
                         it.copy(
-                            accessedPhotoList = intent.accessedPhotoList
+                            accessedPhotoList = state.value.accessedPhotoList + intent.accessedPhoto
                         )
                     }
-
-                    photoPickerRepository.setAccessedPhotos(context, state.value.accessedPhotoList)
                 }
 
             }

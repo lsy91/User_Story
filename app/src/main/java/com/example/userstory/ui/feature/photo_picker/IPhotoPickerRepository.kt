@@ -4,7 +4,5 @@ import android.content.Context
 import android.net.Uri
 
 interface IPhotoPickerRepository {
-    suspend fun setAccessablePhotos(context: Context, accessablePhotoList: List<Uri>)
-    suspend fun setAccessedPhotos(context: Context, accessedPhotoList: List<Uri>)
     suspend fun saveAccessedPhotos(context: Context, accessedPhotoList: List<Uri>, albumName: String)
 }

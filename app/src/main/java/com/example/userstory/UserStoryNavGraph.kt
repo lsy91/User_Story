@@ -120,7 +120,7 @@ fun UserStoryNavGraph(
                                 .padding(end = 10.dp)
                         ) {
                             BaseText(
-                                text = "More",
+                                text = "PhotoPicker",
                                 fontSize = 12,
                                 fontColor = UserStoryOverlayTextColor,
                                 modifier = Modifier
