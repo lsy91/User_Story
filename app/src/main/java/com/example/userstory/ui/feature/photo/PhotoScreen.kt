@@ -1,5 +1,6 @@
 package com.example.userstory.ui.feature.photo
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import coil.Coil
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
@@ -71,7 +73,12 @@ fun PhotoScreen(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         Image(
-                            painter = rememberAsyncImagePainter(selectedPhoto),
+                            painter = rememberAsyncImagePainter(
+                                model = ImageRequest.Builder(context)
+                                    .data(selectedPhoto)
+                                    .allowHardware(false)
+                                    .build()
+                            ),
                             contentDescription = "Selected Photo",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.FillHeight
@@ -84,12 +91,14 @@ fun PhotoScreen(
                                 .components {
                                     add(SvgDecoder.Factory()) // SVG 디코더 추가
                                 }
+                                .allowHardware(false) // 소프트웨어 비트맵 렌더링 크래시 수정
                                 .build()
 
                             AsyncImage(
                                 model = ImageRequest.Builder(context)
                                     .data(selectedDecoItemUrl)
                                     .size(1024, 1024)
+                                    .allowHardware(false)
                                     .build(),
                                 contentDescription = "Loaded Image",
                                 imageLoader = imageLoader,
@@ -107,7 +116,15 @@ fun PhotoScreen(
                     }
                 },
                 onSave = { bitmap ->
-                    saveBitmapToGallery(context, bitmap)
+
+                    val softwareBitmap = if (bitmap.config == Bitmap.Config.HARDWARE) {
+                        bitmap.copy(Bitmap.Config.ARGB_8888, true) // 하드웨어 비트맵을 소프트웨어 비트맵으로 변환
+                    } else {
+                        bitmap
+                    }
+
+                    saveBitmapToGallery(context, softwareBitmap, "UserStory_mod")
+
                     photoViewModel.handleIntent(PhotoIntent.UpdateSavingState(false))
                     // state 를 false  로 변경한 다음 메인으로 이동
                     navigateToMain()

@@ -128,7 +128,7 @@ fun AlbumList(
                 horizontal = 6.dp,
                 vertical = 16.dp
             )
-    ) {album ->
+    ) { album ->
         AlbumCard(
             isAlbumListLoading = albumListState.isAlbumListLoading,
             album = album,

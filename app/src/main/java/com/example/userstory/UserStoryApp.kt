@@ -18,18 +18,10 @@ fun UserStoryApp() {
             UserStoryNavActions(navController)
         }
 
-        // coroutine scope
-        val coroutineScope = rememberCoroutineScope()
-
-        // 현재 스크린
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry?.arguments?.getString("")
-
         UserStoryNavGraph(
             navController = navController,
             navigateToScreen = navActions.navigateToScreen,
             navigateToMain = navActions.navigateToMain,
-            coroutineScope = coroutineScope
         )
     }
 }

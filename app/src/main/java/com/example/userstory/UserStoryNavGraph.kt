@@ -46,7 +46,6 @@ import com.example.userstory.ui.theme.UserStoryFontColor
 import com.example.userstory.ui.theme.UserStoryOverlayButtonBackgroundColor
 import com.example.userstory.ui.theme.UserStoryOverlayTextColor
 import com.example.userstory.utils.CommonUtils
-import kotlinx.coroutines.CoroutineScope
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +53,6 @@ fun UserStoryNavGraph(
     navController: NavHostController,
     navigateToScreen: (String, Any?) -> Unit,
     navigateToMain: () -> Unit,
-    coroutineScope: CoroutineScope
 ) {
     val albumListViewModel: AlbumListViewModel = hiltViewModel()
     val photoListViewModel: PhotoListViewModel = hiltViewModel()

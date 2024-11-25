@@ -21,12 +21,12 @@ class AlbumListViewModel @Inject constructor(
 
     fun handleIntent(intent: AlbumListIntent) {
         when (intent) {
-            is AlbumListIntent.LoadMyAlbums -> loadAlbums()
-            is AlbumListIntent.LoadAllAlbums -> loadAlbums()
+            is AlbumListIntent.LoadMyAlbums -> loadAlbums("My")
+            is AlbumListIntent.LoadAllAlbums -> loadAlbums("All")
         }
     }
 
-    private fun loadAlbums() {
+    private fun loadAlbums(loadCase: String) {
         viewModelScope.launch {
             _state.update {
                 it.copy(
@@ -35,7 +35,14 @@ class AlbumListViewModel @Inject constructor(
             }
 
             try {
-                val albums = albumListRepository.loadAlbumsGroupedByFolder()
+
+                val albums =
+                    if (loadCase.equals("My", ignoreCase = true)) {
+                        albumListRepository.loadMyAlbums()
+                    } else {
+                        albumListRepository.loadAlbumsGroupedByFolder()
+                    }
+
                 _state.update {
                     it.copy(
                         isAlbumListLoading = false,
