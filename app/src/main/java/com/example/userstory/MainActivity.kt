@@ -1,11 +1,13 @@
 package com.example.userstory
 
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -21,7 +23,9 @@ class MainActivity : ComponentActivity() {
     lateinit var permissionHelper: PermissionHelper
 
     private val appSettingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        handleAppSettingsResult()
+        if (handleAppSettingsResult()) {
+            initApp()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,15 +33,10 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             // 권한 요청이 완료될 때까지 UI 를 그리지 않고 대기
-            val hasPermissions = handlePermissions()
+            val hasPermissions = handlePermissions(appSettingsLauncher)
 
             if (hasPermissions) {
-                setContent {
-                    UserStoryApp(
-                        permissionHelper = permissionHelper,
-                        appSettingsLauncher = appSettingsLauncher,
-                    )
-                }
+                initApp()
             } else {
                 // 권한 요청 Dialog 띄우기
                 permissionHelper.showSettingsDialog(this@MainActivity, "제한된 액세스를 허용하려면 설정 화면에서 권한을 변경하세요.", appSettingsLauncher)
@@ -45,7 +44,17 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun handleAppSettingsResult() {
+    private fun initApp() {
+        // 권한 승인이 완료되면 앱 초기화
+        setContent {
+            UserStoryApp(
+                permissionHelper = permissionHelper,
+                appSettingsLauncher = appSettingsLauncher,
+            )
+        }
+    }
+
+    private fun handleAppSettingsResult(): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val isAlwaysAllow = ContextCompat.checkSelfPermission(
                 this,
@@ -60,9 +69,11 @@ class MainActivity : ComponentActivity() {
             when {
                 isAlwaysAllow && isLimitedAccessAllow -> {
                     Log.e("PermissionCheck", "Always Allow: Media access granted.")
+                    return true
                 }
                 !isAlwaysAllow && isLimitedAccessAllow -> {
                     Log.e("PermissionCheck", "Limited Access Allow: Restricted media access granted.")
+                    return true
                 }
                 else -> {
                     Log.e("PermissionCheck", "Limited Access or Denied.")
@@ -71,6 +82,7 @@ class MainActivity : ComponentActivity() {
                         "미디어 액세스 권한을 항상 허용으로 설정해주세요.",
                         appSettingsLauncher
                     )
+                    return false
                 }
             }
         } else {
@@ -93,6 +105,7 @@ class MainActivity : ComponentActivity() {
 
             if (deniedPermissions.isEmpty()) {
                 Log.e("PermissionCheck", "All permissions granted.")
+                return true
             } else {
                 Log.e("PermissionCheck", "Permissions denied: $deniedPermissions")
                 permissionHelper.showSettingsDialog(
@@ -100,11 +113,13 @@ class MainActivity : ComponentActivity() {
                     "미디어 액세스 권한을 항상 허용으로 설정해주세요.",
                     appSettingsLauncher
                 )
+
+                return false
             }
         }
     }
 
-    private suspend fun handlePermissions(): Boolean {
+    private suspend fun handlePermissions(appSettingsLauncher: ActivityResultLauncher<Intent>): Boolean {
         val permissionsToRequest = when {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> emptyList()
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> listOf(
@@ -118,6 +133,6 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        return permissionHelper.requestPermissionsSuspend(this@MainActivity, permissionsToRequest)
+        return permissionHelper.requestPermissionsSuspend(this@MainActivity, permissionsToRequest, appSettingsLauncher)
     }
 }
