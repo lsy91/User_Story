@@ -182,10 +182,9 @@ fun AlbumCard(
                 )
             }
             else {
-                // 각 폴더의 첫번째 이미지
                 Image(
-                    painter = rememberAsyncImagePainter(album.photos[0]),
-                    contentDescription = "First Photo",
+                    painter = rememberAsyncImagePainter(album.photos.last()),
+                    contentDescription = "Recent Photo",
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f),

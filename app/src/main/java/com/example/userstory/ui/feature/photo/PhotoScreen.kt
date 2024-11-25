@@ -1,5 +1,6 @@
 package com.example.userstory.ui.feature.photo
 
+import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +29,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import coil.Coil
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
@@ -69,56 +69,17 @@ fun PhotoScreen(
             SaveComposableAsImage(
                 isSaving = photoState.isSaving,
                 content = {
-                    Box(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Image(
-                            painter = rememberAsyncImagePainter(
-                                model = ImageRequest.Builder(context)
-                                    .data(selectedPhoto)
-                                    .allowHardware(false)
-                                    .build()
-                            ),
-                            contentDescription = "Selected Photo",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.FillHeight
-                        )
-
-                        if (selectedDecoItemUrl.isNotBlank()) {
-
-                            // 간단히 SVG 이미지 로드
-                            val imageLoader = ImageLoader.Builder(context)
-                                .components {
-                                    add(SvgDecoder.Factory()) // SVG 디코더 추가
-                                }
-                                .allowHardware(false) // 소프트웨어 비트맵 렌더링 크래시 수정
-                                .build()
-
-                            AsyncImage(
-                                model = ImageRequest.Builder(context)
-                                    .data(selectedDecoItemUrl)
-                                    .size(1024, 1024)
-                                    .allowHardware(false)
-                                    .build(),
-                                contentDescription = "Loaded Image",
-                                imageLoader = imageLoader,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .wrapContentSize()
-                                    .align(Alignment.Center)
-                            )
-
-                            // 툴바에 버튼을 보이라고 인텐트로 전달
-                            LaunchedEffect(selectedDecoItemUrl) {
-                                photoViewModel.handleIntent(PhotoIntent.UpdateButtonVisibility(selectedDecoItemUrl.isNotBlank()))
-                            }
-                        }
-                    }
+                    PhotoEditorContent(
+                        context = context,
+                        selectedPhoto = selectedPhoto,
+                        selectedDecoItemUrl = selectedDecoItemUrl,
+                        photoViewModel = photoViewModel
+                    )
                 },
                 onSave = { bitmap ->
-
+                    // 비트맵 변환 및 저장 로직
                     val softwareBitmap = if (bitmap.config == Bitmap.Config.HARDWARE) {
-                        bitmap.copy(Bitmap.Config.ARGB_8888, true) // 하드웨어 비트맵을 소프트웨어 비트맵으로 변환
+                        bitmap.copy(Bitmap.Config.ARGB_8888, true)
                     } else {
                         bitmap
                     }
@@ -126,7 +87,6 @@ fun PhotoScreen(
                     saveBitmapToGallery(context, softwareBitmap, "UserStory_mod")
 
                     photoViewModel.handleIntent(PhotoIntent.UpdateSavingState(false))
-                    // state 를 false  로 변경한 다음 메인으로 이동
                     navigateToMain()
                 }
             )
@@ -206,5 +166,59 @@ fun DecoItem(
 ) {
     CoilWithImageState(svgImageUrl) { url ->
         onClick(url)
+    }
+}
+
+@Composable
+fun PhotoEditorContent(
+    context: Context,
+    selectedPhoto: String?,
+    selectedDecoItemUrl: String,
+    photoViewModel: PhotoViewModel
+) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Image(
+            painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(context)
+                    .data(selectedPhoto)
+                    .allowHardware(false)
+                    .build()
+            ),
+            contentDescription = "Selected Photo",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.FillHeight
+        )
+
+        if (selectedDecoItemUrl.isNotBlank()) {
+
+            // SVG 이미지 로드 설정
+            val imageLoader = ImageLoader.Builder(context)
+                .components {
+                    add(SvgDecoder.Factory()) // SVG 디코더 추가
+                }
+                .allowHardware(false)
+                .build()
+
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(selectedDecoItemUrl)
+                    .size(1024, 1024)
+                    .allowHardware(false)
+                    .build(),
+                contentDescription = "Loaded Image",
+                imageLoader = imageLoader,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .wrapContentSize()
+                    .align(Alignment.Center)
+            )
+
+            // 툴바 버튼 보이기
+            LaunchedEffect(selectedDecoItemUrl) {
+                photoViewModel.handleIntent(PhotoIntent.UpdateButtonVisibility(selectedDecoItemUrl.isNotBlank()))
+            }
+        }
     }
 }

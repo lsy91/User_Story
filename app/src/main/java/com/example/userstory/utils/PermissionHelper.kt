@@ -18,7 +18,7 @@ import kotlin.coroutines.suspendCoroutine
 
 class PermissionHelper @Inject constructor() {
     // 앱 최초 실행 후 권한을 받아올 때 까지 UI 를 그리지 않게 suspend 시키는 함수
-    suspend fun requestPermissionsSuspend(activity: ComponentActivity, permissions: List<String>, appSettingsLauncher: ActivityResultLauncher<Intent>): Boolean {
+    suspend fun requestPermissionsSuspend(activity: ComponentActivity, permissions: List<String>): Boolean {
         val requiredPermissions = permissions.filter { permission ->
             ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED
         }

@@ -133,6 +133,6 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        return permissionHelper.requestPermissionsSuspend(this@MainActivity, permissionsToRequest, appSettingsLauncher)
+        return permissionHelper.requestPermissionsSuspend(this@MainActivity, permissionsToRequest)
     }
 }

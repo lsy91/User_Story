@@ -34,9 +34,10 @@ fun PhotoListScreen(
         photoListViewModel.handleIntent(PhotoListIntent.ChangeToolbarTitle(album?.name))
     }
 
+    // 최신순으로 정렬하기 위해 reversed() 적용
     BaseLazyVerticalGrid(
-        items = photoListState.photoList,
-        key = { index -> photoListState.photoList[index] },
+        items = photoListState.photoList.reversed(),
+        key = { index -> photoListState.photoList.reversed()[index] },
         columns = 3, // 열 개수
         verticalSpacing = 2, // 수직 간격
         horizontalSpacing = 2, // 수평 간격
@@ -45,7 +46,7 @@ fun PhotoListScreen(
             .padding(
                 vertical = 16.dp
             )
-    ) {photoUri ->
+    ) { photoUri ->
         PhotoCard(
             isPhotoListLoading = photoListState.isPhotoListLoading,
             photoUri = photoUri,
