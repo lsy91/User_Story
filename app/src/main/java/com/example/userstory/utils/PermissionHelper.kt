@@ -11,6 +11,8 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class PermissionHelper(activity: ComponentActivity) {
 
@@ -92,6 +94,26 @@ class PermissionHelper(activity: ComponentActivity) {
         }
     }
 
+    // 앱 최초 실행 후 권한을 받아올 때 까지 UI 를 그리지 않게 suspend 시키는 함수
+    suspend fun requestPermissionsSuspend(context: ComponentActivity, permissions: List<String>): Boolean {
+        val requiredPermissions = permissions.filter { permission ->
+            ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (requiredPermissions.isEmpty()) return true // 모든 권한이 이미 허용된 경우
+
+        return suspendCoroutine { continuation ->
+            val launcher = context.registerForActivityResult(
+                ActivityResultContracts.RequestMultiplePermissions()
+            ) { results ->
+                // 권한 요청 결과 반환
+                val allGranted = results.all { it.value }
+                continuation.resume(allGranted)
+            }
+            launcher.launch(requiredPermissions.toTypedArray())
+        }
+    }
+
     /**
      * 권한 요청 전에 상태를 확인한 후 부족한 권한만 요청합니다.
      */
@@ -128,7 +150,7 @@ class PermissionHelper(activity: ComponentActivity) {
     }
 
     // 권한 거부시 띄워지는 안내 팝업 (뒤로가기로 닫기 불가)
-    private fun showSettingsDialog(context: Context) {
+    fun showSettingsDialog(context: Context) {
         AlertDialog.Builder(context)
             .setTitle("권한 필요")
             .setMessage("제한된 액세스를 허용하려면 설정 화면에서 권한을 변경하세요.")

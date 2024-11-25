@@ -1,7 +1,6 @@
 package com.example.userstory
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -33,17 +32,20 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.userstory.ui.common.BaseText
 import com.example.userstory.ui.feature.album_list.AlbumListScreen
+import com.example.userstory.ui.feature.album_list.AlbumListViewModel
+import com.example.userstory.ui.feature.album_list.bean.Album
 import com.example.userstory.ui.feature.photo.PhotoIntent
 import com.example.userstory.ui.feature.photo.PhotoScreen
 import com.example.userstory.ui.feature.photo.PhotoViewModel
 import com.example.userstory.ui.feature.photo_list.PhotoListScreen
+import com.example.userstory.ui.feature.photo_list.PhotoListViewModel
+import com.example.userstory.ui.feature.photo_picker.PhotoPickerScreen
 import com.example.userstory.ui.theme.RobotoRegular
 import com.example.userstory.ui.theme.UserStoryBackgroundColor
 import com.example.userstory.ui.theme.UserStoryFontColor
 import com.example.userstory.ui.theme.UserStoryOverlayButtonBackgroundColor
 import com.example.userstory.ui.theme.UserStoryOverlayTextColor
 import com.example.userstory.utils.CommonUtils
-import kotlinx.coroutines.CoroutineScope
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,10 +53,13 @@ fun UserStoryNavGraph(
     navController: NavHostController,
     navigateToScreen: (String, Any?) -> Unit,
     navigateToMain: () -> Unit,
-    coroutineScope: CoroutineScope,
-    photoViewModel: PhotoViewModel = viewModel() // Inject ViewModel
 ) {
+    val albumListViewModel: AlbumListViewModel = hiltViewModel()
+    val photoListViewModel: PhotoListViewModel = hiltViewModel()
+    val photoViewModel: PhotoViewModel = hiltViewModel()
 
+    val albumListState by albumListViewModel.state.collectAsState()
+    val photoListState by photoListViewModel.state.collectAsState()
     val photoState by photoViewModel.state.collectAsState()
 
     Scaffold(
@@ -67,9 +72,8 @@ fun UserStoryNavGraph(
                     BaseText(
                         text = when {
                             currentRoute.contains("AlbumList") -> "ALBUM LIST"
-                            currentRoute.contains("PhotoList") -> "앨범명"
-                            currentRoute.contains("Photo") -> "앨범명"
-                            else -> ""
+                            currentRoute.contains("PhotoPicker") -> "Select Photo"
+                            else -> photoListState.toolbarTitle
                         },
                         fontSize = 18,
                         fontColor = UserStoryFontColor,
@@ -78,7 +82,7 @@ fun UserStoryNavGraph(
                     )
                 },
                 actions = {
-                    // 현재 화면이 PhotoScreen 이면서 버튼을 보여야 하는 경우인지 체크
+                    // 현재 화면이 PhotoScreen 이면서 Overlay 버튼을 보여야 하는 경우인지 체크
                     if (currentRoute.contains("Photo") && photoState.isButtonVisible) {
                         Button(
                             colors = ButtonDefaults.buttonColors(
@@ -95,6 +99,28 @@ fun UserStoryNavGraph(
                         ) {
                             BaseText(
                                 text = "Overlay",
+                                fontSize = 12,
+                                fontColor = UserStoryOverlayTextColor,
+                                modifier = Modifier
+                                    .wrapContentSize()
+                            )
+                        }
+                    } else if (currentRoute.contains("AlbumList")) {
+                        Button(
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = UserStoryOverlayButtonBackgroundColor
+                            ),
+                            onClick = {
+                                // Photo Picker 호출
+                                navigateToScreen("PhotoPicker", null)
+                            },
+                            contentPadding = PaddingValues(horizontal = 30.dp, vertical = 8.dp),
+                            modifier = Modifier
+                                .wrapContentSize()
+                                .padding(end = 10.dp)
+                        ) {
+                            BaseText(
+                                text = "More",
                                 fontSize = 12,
                                 fontColor = UserStoryOverlayTextColor,
                                 modifier = Modifier
@@ -158,6 +184,8 @@ fun UserStoryNavGraph(
                     route = ScreenRoute.AlbumListRoute.route
                 ) {
                     AlbumListScreen(
+                        albumListViewModel = albumListViewModel,
+                        albumListState = albumListState,
                         navigateToScreen = navigateToScreen
                     )
                 }
@@ -171,18 +199,15 @@ fun UserStoryNavGraph(
                         }
                     )
                 ) { backStackEntry ->
-
-                    // TODO Test
-                    // 선택한 앨범에서 전달받은 PhotoList 가져오기
+                    // 선택한 앨범에서 전달받은 앨범 데이터 가져오기
                     val encodedPhotoListData = backStackEntry.arguments?.getString("PhotoList") ?: ""
                     val decodedPhotoList = Uri.decode(encodedPhotoListData)
-
-                    // JSON을 객체로 변환
-                    val photoListArguments = CommonUtils.convertJSONToObj<String>(decodedPhotoList, String::class.java)
-
-                    Log.e("sy.lee", photoListArguments.toString())
+                    val album = CommonUtils.convertJSONToObj<Album>(decodedPhotoList, Album::class.java)
 
                     PhotoListScreen(
+                        album = album,
+                        photoListViewModel = photoListViewModel,
+                        photoListState = photoListState,
                         navigateToScreen = navigateToScreen
                     )
                 }
@@ -195,21 +220,24 @@ fun UserStoryNavGraph(
                             defaultValue = ""
                         }
                     )
-                ) {backStackEntry ->
-                    // TODO Test
+                ) { backStackEntry ->
                     // 선택한 Photo 가져오기
                     val encodedPhotoData = backStackEntry.arguments?.getString("Photo") ?: ""
                     val decodedPhoto = Uri.decode(encodedPhotoData)
-
-                    // JSON을 객체로 변환
-                    val photoArguments = CommonUtils.convertJSONToObj<String>(decodedPhoto, String::class.java)
-
-                    Log.e("sy.lee", photoArguments.toString())
+                    val selectedPhoto = CommonUtils.convertJSONToObj<String>(decodedPhoto, String::class.java)
 
                     PhotoScreen(
+                        selectedPhoto = selectedPhoto,
                         photoViewModel = photoViewModel,
+                        photoState = photoState,
                         navigateToMain = navigateToMain,
                     )
+                }
+
+                composable(
+                    route = ScreenRoute.PhotoPickerRoute.route
+                ) {
+                    PhotoPickerScreen()
                 }
             }
         }
@@ -225,4 +253,6 @@ sealed class ScreenRoute(val route: String) {
     data object PhotoListRoute : ScreenRoute("PhotoList")
 
     data object PhotoRoute : ScreenRoute("Photo")
+
+    data object PhotoPickerRoute: ScreenRoute("PhotoPicker")
 }

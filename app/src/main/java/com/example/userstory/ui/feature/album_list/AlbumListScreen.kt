@@ -1,6 +1,5 @@
 package com.example.userstory.ui.feature.album_list
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -19,6 +18,7 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -27,28 +27,40 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.userstory.R
+import coil.compose.rememberAsyncImagePainter
 import com.example.userstory.ui.common.BaseLazyVerticalGrid
+import com.example.userstory.ui.common.BaseShimmer
 import com.example.userstory.ui.common.BaseText
+import com.example.userstory.ui.feature.album_list.bean.Album
 import com.example.userstory.ui.theme.UserStoryBackgroundColor
 import com.example.userstory.ui.theme.UserStoryCardDescriptionBackgroundColor
 import com.example.userstory.ui.theme.UserStoryTabIndicatorColor
+import com.facebook.shimmer.Shimmer
 
 @Composable
 fun AlbumListScreen(
+    albumListViewModel: AlbumListViewModel,
+    albumListState: AlbumListState,
     navigateToScreen: (String, Any?) -> Unit
 ) {
-    // 탭 상태 관리
-    val albumListScreenTabs = listOf("My Albums", "All Albums")
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    // shimmer
+    val shimmer = albumListViewModel.provideShimmer()
+
+    // 최초에 MyAlbums 리스트부터 가져옴.
+    LaunchedEffect(Unit) {
+        albumListViewModel.handleIntent(AlbumListIntent.LoadMyAlbums)
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
     ) {
+
+        // 탭 상태 관리
+        val albumListScreenTabs = listOf("My Albums", "All Albums")
+        var selectedTabIndex by remember { mutableIntStateOf(0) }
+
         TabRow(
             selectedTabIndex = selectedTabIndex,
             containerColor = UserStoryBackgroundColor,
@@ -68,7 +80,17 @@ fun AlbumListScreen(
             albumListScreenTabs.forEachIndexed { tabIndex, tabTitle ->
                 Tab(
                     selected = selectedTabIndex == tabIndex,
-                    onClick = { selectedTabIndex = tabIndex },
+                    onClick = {
+                        selectedTabIndex = tabIndex
+
+                        val intent = if (selectedTabIndex == 0) {
+                            AlbumListIntent.LoadMyAlbums
+                        } else {
+                            AlbumListIntent.LoadAllAlbums
+                        }
+
+                        albumListViewModel.handleIntent(intent)
+                    },
                     text = {
                         BaseText(
                             text = tabTitle,
@@ -80,21 +102,9 @@ fun AlbumListScreen(
             }
         }
 
-        // TODO 클릭한 탭에 따라 보여줄 앨범 리스트 데이터만 분기처리. 앨범 리스트 뷰는 재활용한다.
-        // 갤러리 이미지 가져오기
-        // CommonUtils.accessAllMediaFilesGroupedByFolder(context)
-
-        val albumData = when (selectedTabIndex) {
-            1 -> {
-                "All Albums"
-            }
-            else -> {
-                "My Albums"
-            }
-        }
-
         AlbumList(
-            albumData = albumData,
+            albumListState = albumListState,
+            shimmer = shimmer,
             navigateToScreen = navigateToScreen
         )
     }
@@ -102,18 +112,13 @@ fun AlbumListScreen(
 
 @Composable
 fun AlbumList(
-    albumData: String,
+    albumListState: AlbumListState,
+    shimmer: Shimmer,
     navigateToScreen: (String, Any?) -> Unit
 ) {
-    val context = LocalContext.current
-
-    // Test
-    Toast.makeText(context, albumData, Toast.LENGTH_SHORT).show()
-    val albumList = listOf("1","2","3","4","5","6","7")
-
     BaseLazyVerticalGrid(
-        items = albumList, // 데이터 리스트
-        key = { index -> albumList[index] }, // 고유 키
+        items = albumListState.albums, // 앨범 리스트
+        key = { index -> albumListState.albums[index].name }, // 앨범명으로 고유키 설정
         columns = 2, // 열 개수
         verticalSpacing = 8, // 수직 간격
         horizontalSpacing = 8, // 수평 간격
@@ -123,9 +128,11 @@ fun AlbumList(
                 horizontal = 6.dp,
                 vertical = 16.dp
             )
-    ) { albumKey ->
+    ) { album ->
         AlbumCard(
-            albumKey = albumKey,
+            isAlbumListLoading = albumListState.isAlbumListLoading,
+            album = album,
+            shimmer = shimmer,
             navigateToScreen = navigateToScreen // 아이템 UI 정의
         )
     }
@@ -133,26 +140,20 @@ fun AlbumList(
 
 @Composable
 fun AlbumCard(
-    albumKey: String,
+    isAlbumListLoading: Boolean,
+    album: Album,
+    shimmer: Shimmer,
     navigateToScreen: (String, Any?) -> Unit
 ) {
-
-    // Test
-    val context = LocalContext.current
-
     Card(
         shape = RoundedCornerShape(3.dp),
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-
-                // Test
-                Toast.makeText(context, albumKey, Toast.LENGTH_SHORT).show()
-
-                // TODO 사진 리스트로 이동
+                // 사진 리스트로 이동
                 navigateToScreen(
                     "PhotoList",
-                    "{Arguments : PhotoList}"
+                    album
                 )
             },
         elevation = CardDefaults.elevatedCardElevation(3.dp)
@@ -161,42 +162,52 @@ fun AlbumCard(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            // TODO 폴더의 첫번째 이미지
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_background), // 이미지 리소스
-                contentDescription = "First Photo",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f),
-                contentScale = ContentScale.Crop
-            )
+            if (isAlbumListLoading) {
+                BaseShimmer(
+                    shimmer = shimmer,
+                    contentHeight = 200
+                )
+            }
+            else {
+                // 각 폴더의 첫번째 이미지
+                Image(
+                    painter = rememberAsyncImagePainter(album.photos[0]),
+                    contentDescription = "First Photo",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f),
+                    contentScale = ContentScale.Crop
+                )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .drawBehind {
-                        drawRect(
-                            color = UserStoryCardDescriptionBackgroundColor
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .drawBehind {
+                            drawRect(
+                                color = UserStoryCardDescriptionBackgroundColor
+                            )
+                        }
+                        .padding(
+                            horizontal = 8.dp,
+                            vertical = 9.dp
                         )
-                    }
-                    .padding(
-                        horizontal = 8.dp,
-                        vertical = 9.dp
+                ) {
+                    BaseText(
+                        text = album.name,
+                        fontSize = 13,
+                        fontWeight = 500
                     )
-            ) {
-                BaseText(
-                    text = "Album Name",
-                    fontSize = 13,
-                    fontWeight = 500
-                )
 
-                Spacer(modifier = Modifier.fillMaxWidth().height(3.dp))
+                    Spacer(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(3.dp))
 
-                BaseText(
-                    text = "0 Images",
-                    fontSize = 11,
-                    fontWeight = 500
-                )
+                    BaseText(
+                        text = "${album.photoCount}",
+                        fontSize = 11,
+                        fontWeight = 500
+                    )
+                }
             }
         }
     }
