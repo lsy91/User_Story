@@ -1,5 +1,8 @@
 package com.example.userstory.ui.feature.album_list
 
+import android.content.Intent
+import androidx.activity.ComponentActivity
+import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -27,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.userstory.ui.common.BaseLazyVerticalGrid
@@ -36,14 +40,19 @@ import com.example.userstory.ui.feature.album_list.bean.Album
 import com.example.userstory.ui.theme.UserStoryBackgroundColor
 import com.example.userstory.ui.theme.UserStoryCardDescriptionBackgroundColor
 import com.example.userstory.ui.theme.UserStoryTabIndicatorColor
+import com.example.userstory.utils.PermissionHelper
 import com.facebook.shimmer.Shimmer
 
 @Composable
 fun AlbumListScreen(
     albumListViewModel: AlbumListViewModel,
     albumListState: AlbumListState,
+    permissionHelper: PermissionHelper,
+    appSettingsLauncher: ActivityResultLauncher<Intent>,
     navigateToScreen: (String, Any?) -> Unit
 ) {
+    val context = LocalContext.current
+
     // shimmer
     val shimmer = albumListViewModel.provideShimmer()
 
@@ -81,15 +90,19 @@ fun AlbumListScreen(
                 Tab(
                     selected = selectedTabIndex == tabIndex,
                     onClick = {
-                        selectedTabIndex = tabIndex
-
-                        val intent = if (selectedTabIndex == 0) {
-                            AlbumListIntent.LoadMyAlbums
+                        if (tabIndex == 1) {
+                            permissionHelper.handleAllAlbumPermission(
+                                activity = context as ComponentActivity,
+                                appSettingsLauncher = appSettingsLauncher,
+                                onSuccess = {
+                                    selectedTabIndex = tabIndex
+                                    albumListViewModel.handleIntent(AlbumListIntent.LoadAllAlbums)
+                                }
+                            )
                         } else {
-                            AlbumListIntent.LoadAllAlbums
+                            selectedTabIndex = tabIndex
+                            albumListViewModel.handleIntent(AlbumListIntent.LoadMyAlbums)
                         }
-
-                        albumListViewModel.handleIntent(intent)
                     },
                     text = {
                         BaseText(

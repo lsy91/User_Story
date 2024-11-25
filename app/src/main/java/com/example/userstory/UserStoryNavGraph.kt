@@ -1,6 +1,8 @@
 package com.example.userstory
 
+import android.content.Intent
 import android.net.Uri
+import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,11 +48,14 @@ import com.example.userstory.ui.theme.UserStoryFontColor
 import com.example.userstory.ui.theme.UserStoryOverlayButtonBackgroundColor
 import com.example.userstory.ui.theme.UserStoryOverlayTextColor
 import com.example.userstory.utils.CommonUtils
+import com.example.userstory.utils.PermissionHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserStoryNavGraph(
     navController: NavHostController,
+    permissionHelper: PermissionHelper,
+    appSettingsLauncher: ActivityResultLauncher<Intent>,
     navigateToScreen: (String, Any?) -> Unit,
     navigateToMain: () -> Unit,
 ) {
@@ -186,6 +191,8 @@ fun UserStoryNavGraph(
                     AlbumListScreen(
                         albumListViewModel = albumListViewModel,
                         albumListState = albumListState,
+                        permissionHelper = permissionHelper,
+                        appSettingsLauncher = appSettingsLauncher,
                         navigateToScreen = navigateToScreen
                     )
                 }
